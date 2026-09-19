@@ -1,3 +1,11 @@
+export type ListingCategory =
+  | "Village Homestay"
+  | "Riverside Homestay"
+  | "Farm Homestay"
+  | "Plantation Homestay"
+  | "Community Homestay"
+  | "Countryside Homestay";
+
 export interface Location {
   region: string;
   area: string;
@@ -36,7 +44,7 @@ export interface Listing {
   images: string[];
   thumbnailUrl: string;
   location: Location;
-  category: string;
+  category: ListingCategory;
   tags: string[];
   price: Price;
   rating: Rating;
