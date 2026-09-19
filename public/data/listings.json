@@ -5,11 +5,11 @@
     "tagline": "Local meals · Village life",
     "description": "Stay with a welcoming family in a traditional wooden stilt house on the outskirts of Siem Reap. Share home-cooked Khmer meals and evening stories on the veranda.",
     "images": [
-      "https://images.example.com/listings/preah-village/1.jpg",
-      "https://images.example.com/listings/preah-village/2.jpg",
-      "https://images.example.com/listings/preah-village/3.jpg"
+      "https://images.unsplash.com/photo-1628194968194-5189a8b51909?auto=format&fit=crop&w=1600&q=82",
+      "https://images.unsplash.com/photo-1634623391440-eee532636511?auto=format&fit=crop&w=1600&q=82",
+      "https://images.unsplash.com/photo-1672833474987-d50e626b7f3d?auto=format&fit=crop&w=1600&q=82"
     ],
-    "thumbnailUrl": "https://images.example.com/listings/preah-village/thumb.jpg",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1628194968194-5189a8b51909?auto=format&fit=crop&w=800&q=80",
     "location": { "region": "Siem Reap", "area": "Angkor Countryside" },
     "category": "Village Homestay",
     "tags": ["Rural & Countryside", "Family-run"],
@@ -32,11 +32,11 @@
     "tagline": "River view · Boat trips",
     "description": "Wake up to the sound of the Mekong. This riverside home in Kampong Cham offers a private room, sunset boat rides, and fresh river fish for dinner.",
     "images": [
-      "https://images.example.com/listings/mekong-riverside/1.jpg",
-      "https://images.example.com/listings/mekong-riverside/2.jpg",
-      "https://images.example.com/listings/mekong-riverside/3.jpg"
+      "https://images.unsplash.com/photo-1634623391440-eee532636511?auto=format&fit=crop&w=1600&q=82",
+      "https://images.unsplash.com/photo-1672833474987-d50e626b7f3d?auto=format&fit=crop&w=1600&q=82",
+      "https://images.unsplash.com/photo-1645791973923-0a64f698d6ef?auto=format&fit=crop&w=1600&q=82"
     ],
-    "thumbnailUrl": "https://images.example.com/listings/mekong-riverside/thumb.jpg",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1634623391440-eee532636511?auto=format&fit=crop&w=800&q=80",
     "location": { "region": "Kampong Cham", "area": "Mekong Riverbank" },
     "category": "Riverside Homestay",
     "tags": ["Rural & Countryside", "Riverside"],
@@ -59,11 +59,11 @@
     "tagline": "Farm experience · Open views",
     "description": "Live and work alongside a farming family in Battambang. Try your hand at planting rice, milking cows, and cooking with ingredients straight from the field.",
     "images": [
-      "https://images.example.com/listings/rice-field/1.jpg",
-      "https://images.example.com/listings/rice-field/2.jpg",
-      "https://images.example.com/listings/rice-field/3.jpg"
+      "https://images.unsplash.com/photo-1672833474987-d50e626b7f3d?auto=format&fit=crop&w=1600&q=82",
+      "https://images.unsplash.com/photo-1645791973923-0a64f698d6ef?auto=format&fit=crop&w=1600&q=82",
+      "https://images.unsplash.com/photo-1770850994002-718c87787ce5?auto=format&fit=crop&w=1600&q=82"
     ],
-    "thumbnailUrl": "https://images.example.com/listings/rice-field/thumb.jpg",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1672833474987-d50e626b7f3d?auto=format&fit=crop&w=800&q=80",
     "location": { "region": "Battambang", "area": "Rice Field Country" },
     "category": "Farm Homestay",
     "tags": ["Rural & Countryside", "Farm experience"],
@@ -86,11 +86,11 @@
     "tagline": "Pepper farm · Countryside air",
     "description": "Nestled among Kampot's famous pepper plantations, this homestay lets you tour the farm, sample fresh pepper, and relax in the cool countryside air.",
     "images": [
-      "https://images.example.com/listings/kampot-plantation/1.jpg",
-      "https://images.example.com/listings/kampot-plantation/2.jpg",
-      "https://images.example.com/listings/kampot-plantation/3.jpg"
+      "https://images.unsplash.com/photo-1645791973923-0a64f698d6ef?auto=format&fit=crop&w=1600&q=82",
+      "https://images.unsplash.com/photo-1770850994002-718c87787ce5?auto=format&fit=crop&w=1600&q=82",
+      "https://images.unsplash.com/photo-1774846505579-4a710ff4c5fe?auto=format&fit=crop&w=1600&q=82"
     ],
-    "thumbnailUrl": "https://images.example.com/listings/kampot-plantation/thumb.jpg",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1645791973923-0a64f698d6ef?auto=format&fit=crop&w=800&q=80",
     "location": { "region": "Kampot", "area": "Pepper Farm District" },
     "category": "Plantation Homestay",
     "tags": ["Rural & Countryside", "Plantation"],
@@ -113,11 +113,11 @@
     "tagline": "River visit · Community life",
     "description": "A community-run homestay along the Sre Ambel river, offering an authentic look at coastal village life with river visits and shared community meals.",
     "images": [
-      "https://images.example.com/listings/sre-ambel-community/1.jpg",
-      "https://images.example.com/listings/sre-ambel-community/2.jpg",
-      "https://images.example.com/listings/sre-ambel-community/3.jpg"
+      "https://images.unsplash.com/photo-1770850994002-718c87787ce5?auto=format&fit=crop&w=1600&q=82",
+      "https://images.unsplash.com/photo-1774846505579-4a710ff4c5fe?auto=format&fit=crop&w=1600&q=82",
+      "https://images.unsplash.com/photo-1628194968194-5189a8b51909?auto=format&fit=crop&w=1600&q=82"
     ],
-    "thumbnailUrl": "https://images.example.com/listings/sre-ambel-community/thumb.jpg",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1770850994002-718c87787ce5?auto=format&fit=crop&w=800&q=80",
     "location": { "region": "Koh Kong", "area": "Sre Ambel River" },
     "category": "Community Homestay",
     "tags": ["Rural & Countryside", "Community-run"],
@@ -140,11 +140,11 @@
     "tagline": "Local life · Quiet escape",
     "description": "Just outside the capital, this Kandal countryside home offers a quiet escape with easy access to Phnom Penh and a genuine taste of everyday rural life.",
     "images": [
-      "https://images.example.com/listings/phnom-penh-countryside/1.jpg",
-      "https://images.example.com/listings/phnom-penh-countryside/2.jpg",
-      "https://images.example.com/listings/phnom-penh-countryside/3.jpg"
+      "https://images.unsplash.com/photo-1774846505579-4a710ff4c5fe?auto=format&fit=crop&w=1600&q=82",
+      "https://images.unsplash.com/photo-1628194968194-5189a8b51909?auto=format&fit=crop&w=1600&q=82",
+      "https://images.unsplash.com/photo-1634623391440-eee532636511?auto=format&fit=crop&w=1600&q=82"
     ],
-    "thumbnailUrl": "https://images.example.com/listings/phnom-penh-countryside/thumb.jpg",
+    "thumbnailUrl": "https://images.unsplash.com/photo-1774846505579-4a710ff4c5fe?auto=format&fit=crop&w=800&q=80",
     "location": { "region": "Kandal", "area": "Phnom Penh Countryside" },
     "category": "Countryside Homestay",
     "tags": ["Rural & Countryside", "Near capital"],
