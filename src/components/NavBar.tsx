@@ -30,9 +30,6 @@ export function NavBar() {
             <span className="font-bold text-gray-900 text-base leading-tight tracking-tight">
               JumRok
             </span>
-            <span className="text-[11px] sm:text-xs text-gray-500 font-normal leading-tight">
-              Homestays for a More Meaningful Journey
-            </span>
           </div>
         </a>
 
@@ -55,7 +52,7 @@ export function NavBar() {
         </nav>
 
         {/* Right: Language Selector & Log In */}
-        <div className="hidden sm:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3">
           {/* Language Selector */}
           <div className="relative">
             <button
@@ -93,7 +90,7 @@ export function NavBar() {
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="flex items-center sm:hidden gap-2">
+        <div className="flex items-center md:hidden gap-2">
           <button
             onClick={() => setIsLangOpen(!isLangOpen)}
             className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#EFEFEA] text-xs font-medium"
@@ -112,7 +109,7 @@ export function NavBar() {
 
       {/* Mobile Dropdown Menu */}
       {isMobileOpen && (
-        <div className="sm:hidden max-w-7xl mx-auto mt-2 bg-[#FAF9F5] border border-black/5 shadow-lg rounded-3xl p-5 flex flex-col gap-4 animate-in slide-in-from-top-2">
+        <div className="md:hidden max-w-7xl mx-auto mt-2 bg-[#FAF9F5] border border-black/5 shadow-lg rounded-3xl p-5 flex flex-col gap-4 animate-in slide-in-from-top-2">
           <nav className="flex flex-col gap-3">
             {navLinks.map((link) => (
               <a
