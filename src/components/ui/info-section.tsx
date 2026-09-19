@@ -38,7 +38,7 @@ export function InfoSection() {
         {/* Left: copy */}
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#203C2D]/60">
-            Why DeliBook
+            Why JumRok
           </p>
           <h2 className="mb-4 font-serif text-3xl leading-tight text-[#203C2D] md:text-4xl">
             What Makes Our Homestay Platform Unique

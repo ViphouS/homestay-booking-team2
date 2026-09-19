@@ -16,7 +16,7 @@ export function TestimonialSection() {
             Real Experiences. Real People.
           </h2>
           <p className="mx-auto mb-8 max-w-xl text-sm italic text-[#203C2D]/70">
-            "Booking through DeliBook was the highlight of our Cambodia trip. We
+            "Booking through JumRok was the highlight of our Cambodia trip. We
             stayed with a wonderful local family, shared home-cooked Khmer food,
             and learned so much about everyday life."
           </p>
