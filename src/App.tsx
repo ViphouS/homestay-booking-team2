@@ -1,6 +1,7 @@
 import { NavBar } from "./components/NavBar"
 import { Footer } from "./components/Footer"
 import { HeroSection } from "@/components/hero"
+import { ListingSection } from "@/components/ui/listing-section"
 import { InfoSection } from "@/components/ui/info-section"
 import { TestimonialSection } from "@/components/ui/testimonial-section"
 
@@ -11,9 +12,8 @@ export function App() {
       <NavBar />
 
       <main className="flex-1 pt-28">
-        {/* Category/cards section is owned by other branches and lands
-            here as it merges. */}
         <HeroSection />
+        <ListingSection />
         <InfoSection />
         <TestimonialSection />
       </main>
