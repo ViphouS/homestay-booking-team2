@@ -39,7 +39,7 @@ export function ListingSection() {
   }, [listings, activeRegion]);
 
   return (
-    <section className="bg-[#F3EFE8] px-6 py-16 md:px-16">
+    <section className="bg-[#FBF8F2] px-6 py-16 md:px-16">
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#203C2D]/60">
