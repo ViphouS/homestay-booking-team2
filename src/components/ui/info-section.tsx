@@ -33,7 +33,7 @@ const features = [
 
 export function InfoSection() {
   return (
-    <section className="bg-[#F3EFE8] px-6 py-16 md:px-16">
+    <section className="px-6 py-16 md:px-16">
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 md:grid-cols-2 md:items-center">
         {/* Left: copy */}
         <div>

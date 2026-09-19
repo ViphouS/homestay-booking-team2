@@ -6,7 +6,7 @@ import { TestimonialSection } from "@/components/ui/testimonial-section"
 
 export function App() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#F4F3EF]">
+    <div className="flex min-h-screen flex-col bg-[#FBF8F2]">
       {/* Navigation Bar */}
       <NavBar />
 

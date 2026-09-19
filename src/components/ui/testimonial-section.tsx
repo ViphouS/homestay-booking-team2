@@ -6,7 +6,7 @@ const AVATAR_COUNT = 5;
 
 export function TestimonialSection() {
   return (
-    <section className="bg-[#F3EFE8] px-6 py-16 md:px-16">
+    <section className="px-6 py-16 md:px-16">
       <Card className="mx-auto max-w-3xl rounded-3xl border-0 bg-[#EFB7A8]/70 shadow-none">
         <CardContent className="px-8 py-14 text-center">
           <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#203C2D]/60">
