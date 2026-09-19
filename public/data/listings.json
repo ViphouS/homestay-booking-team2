@@ -1,0 +1,164 @@
+[
+  {
+    "id": "preah-village-homestay",
+    "name": "Preah Village Homestay",
+    "tagline": "Local meals · Village life",
+    "description": "Stay with a welcoming family in a traditional wooden stilt house on the outskirts of Siem Reap. Share home-cooked Khmer meals and evening stories on the veranda.",
+    "images": [
+      "https://images.example.com/listings/preah-village/1.jpg",
+      "https://images.example.com/listings/preah-village/2.jpg",
+      "https://images.example.com/listings/preah-village/3.jpg"
+    ],
+    "thumbnailUrl": "https://images.example.com/listings/preah-village/thumb.jpg",
+    "location": { "region": "Siem Reap", "area": "Angkor Countryside" },
+    "category": "Village Homestay",
+    "tags": ["Rural & Countryside", "Family-run"],
+    "price": { "amount": 18, "currency": "USD", "unit": "night" },
+    "rating": { "score": 4.7, "reviewCount": 41 },
+    "capacity": { "maxGuests": 3 },
+    "beds": 2,
+    "roomType": "Private stilt house room",
+    "roomSize": { "value": 18, "unit": "sqm" },
+    "facilities": ["WiFi", "Parking", "Fan", "Shared bathroom"],
+    "experiences": ["Home-cooked meals", "Village walk", "Traditional weaving demo"],
+    "host": {
+      "name": "Sokha Ven",
+      "avatarUrl": "https://images.example.com/hosts/sokha-ven.jpg"
+    }
+  },
+  {
+    "id": "mekong-riverside-homestay",
+    "name": "Mekong Riverside Homestay",
+    "tagline": "River view · Boat trips",
+    "description": "Wake up to the sound of the Mekong. This riverside home in Kampong Cham offers a private room, sunset boat rides, and fresh river fish for dinner.",
+    "images": [
+      "https://images.example.com/listings/mekong-riverside/1.jpg",
+      "https://images.example.com/listings/mekong-riverside/2.jpg",
+      "https://images.example.com/listings/mekong-riverside/3.jpg"
+    ],
+    "thumbnailUrl": "https://images.example.com/listings/mekong-riverside/thumb.jpg",
+    "location": { "region": "Kampong Cham", "area": "Mekong Riverbank" },
+    "category": "Riverside Homestay",
+    "tags": ["Rural & Countryside", "Riverside"],
+    "price": { "amount": 22, "currency": "USD", "unit": "night" },
+    "rating": { "score": 4.8, "reviewCount": 57 },
+    "capacity": { "maxGuests": 4 },
+    "beds": 3,
+    "roomType": "Riverfront private room",
+    "roomSize": { "value": 22, "unit": "sqm" },
+    "facilities": ["WiFi", "Parking", "Hot water", "Kitchen access"],
+    "experiences": ["Sunset boat ride", "River fishing", "Home-cooked meals"],
+    "host": {
+      "name": "Bunthoeun Chea",
+      "avatarUrl": "https://images.example.com/hosts/bunthoeun-chea.jpg"
+    }
+  },
+  {
+    "id": "rice-field-homestay",
+    "name": "Rice Field Homestay",
+    "tagline": "Farm experience · Open views",
+    "description": "Live and work alongside a farming family in Battambang. Try your hand at planting rice, milking cows, and cooking with ingredients straight from the field.",
+    "images": [
+      "https://images.example.com/listings/rice-field/1.jpg",
+      "https://images.example.com/listings/rice-field/2.jpg",
+      "https://images.example.com/listings/rice-field/3.jpg"
+    ],
+    "thumbnailUrl": "https://images.example.com/listings/rice-field/thumb.jpg",
+    "location": { "region": "Battambang", "area": "Rice Field Country" },
+    "category": "Farm Homestay",
+    "tags": ["Rural & Countryside", "Farm experience"],
+    "price": { "amount": 20, "currency": "USD", "unit": "night" },
+    "rating": { "score": 4.6, "reviewCount": 33 },
+    "capacity": { "maxGuests": 5 },
+    "beds": 4,
+    "roomType": "Farmhouse shared room",
+    "roomSize": { "value": 28, "unit": "sqm" },
+    "facilities": ["WiFi", "Parking", "Fan", "Shared bathroom"],
+    "experiences": ["Rice planting", "Farm tour", "Home-cooked meals"],
+    "host": {
+      "name": "Ratanak Sor",
+      "avatarUrl": "https://images.example.com/hosts/ratanak-sor.jpg"
+    }
+  },
+  {
+    "id": "kampot-plantation-homestay",
+    "name": "Kampot Plantation Homestay",
+    "tagline": "Pepper farm · Countryside air",
+    "description": "Nestled among Kampot's famous pepper plantations, this homestay lets you tour the farm, sample fresh pepper, and relax in the cool countryside air.",
+    "images": [
+      "https://images.example.com/listings/kampot-plantation/1.jpg",
+      "https://images.example.com/listings/kampot-plantation/2.jpg",
+      "https://images.example.com/listings/kampot-plantation/3.jpg"
+    ],
+    "thumbnailUrl": "https://images.example.com/listings/kampot-plantation/thumb.jpg",
+    "location": { "region": "Kampot", "area": "Pepper Farm District" },
+    "category": "Plantation Homestay",
+    "tags": ["Rural & Countryside", "Plantation"],
+    "price": { "amount": 24, "currency": "USD", "unit": "night" },
+    "rating": { "score": 4.9, "reviewCount": 62 },
+    "capacity": { "maxGuests": 2 },
+    "beds": 2,
+    "roomType": "Private garden bungalow",
+    "roomSize": { "value": 20, "unit": "sqm" },
+    "facilities": ["WiFi", "Parking", "Hot water", "Air conditioning"],
+    "experiences": ["Pepper farm tour", "Bike rental", "Home-cooked meals"],
+    "host": {
+      "name": "Chenda Pich",
+      "avatarUrl": "https://images.example.com/hosts/chenda-pich.jpg"
+    }
+  },
+  {
+    "id": "sre-ambel-community-homestay",
+    "name": "Sre Ambel Community Homestay",
+    "tagline": "River visit · Community life",
+    "description": "A community-run homestay along the Sre Ambel river, offering an authentic look at coastal village life with river visits and shared community meals.",
+    "images": [
+      "https://images.example.com/listings/sre-ambel-community/1.jpg",
+      "https://images.example.com/listings/sre-ambel-community/2.jpg",
+      "https://images.example.com/listings/sre-ambel-community/3.jpg"
+    ],
+    "thumbnailUrl": "https://images.example.com/listings/sre-ambel-community/thumb.jpg",
+    "location": { "region": "Koh Kong", "area": "Sre Ambel River" },
+    "category": "Community Homestay",
+    "tags": ["Rural & Countryside", "Community-run"],
+    "price": { "amount": 28, "currency": "USD", "unit": "night" },
+    "rating": { "score": 4.5, "reviewCount": 24 },
+    "capacity": { "maxGuests": 4 },
+    "beds": 3,
+    "roomType": "Community house private room",
+    "roomSize": { "value": 24, "unit": "sqm" },
+    "facilities": ["WiFi", "Parking", "Fan", "Kitchen access"],
+    "experiences": ["River visit", "Community meal", "Fishing trip"],
+    "host": {
+      "name": "Vanna Keo",
+      "avatarUrl": "https://images.example.com/hosts/vanna-keo.jpg"
+    }
+  },
+  {
+    "id": "phnom-penh-countryside-stay",
+    "name": "Phnom Penh Countryside Stay",
+    "tagline": "Local life · Quiet escape",
+    "description": "Just outside the capital, this Kandal countryside home offers a quiet escape with easy access to Phnom Penh and a genuine taste of everyday rural life.",
+    "images": [
+      "https://images.example.com/listings/phnom-penh-countryside/1.jpg",
+      "https://images.example.com/listings/phnom-penh-countryside/2.jpg",
+      "https://images.example.com/listings/phnom-penh-countryside/3.jpg"
+    ],
+    "thumbnailUrl": "https://images.example.com/listings/phnom-penh-countryside/thumb.jpg",
+    "location": { "region": "Kandal", "area": "Phnom Penh Countryside" },
+    "category": "Countryside Homestay",
+    "tags": ["Rural & Countryside", "Near capital"],
+    "price": { "amount": 19, "currency": "USD", "unit": "night" },
+    "rating": { "score": 4.6, "reviewCount": 29 },
+    "capacity": { "maxGuests": 3 },
+    "beds": 3,
+    "roomType": "Private garden room",
+    "roomSize": { "value": 19, "unit": "sqm" },
+    "facilities": ["WiFi", "Parking", "Hot water", "Shared bathroom"],
+    "experiences": ["Home-cooked meals", "Bike rental", "Local market visit"],
+    "host": {
+      "name": "Dara Nhem",
+      "avatarUrl": "https://images.example.com/hosts/dara-nhem.jpg"
+    }
+  }
+]
