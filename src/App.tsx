@@ -1,18 +1,29 @@
-import { NavBar } from "./components/NavBar"
+import { Navigate, Route, Routes } from "react-router-dom"
+
 import { Footer } from "./components/Footer"
+import { NavBar } from "./components/NavBar"
+import { Explore } from "@/pages/explore"
 import { Home } from "@/pages/home/Home"
 
+/**
+ * App shell: fixed navigation, the routed page, then the footer.
+ *
+ * `main`'s top padding clears the fixed `NavBar`.
+ */
 export function App() {
   return (
     <div className="flex min-h-screen flex-col bg-[#FBF8F2]">
-      {/* Navigation Bar */}
       <NavBar />
 
       <main className="flex-1 pt-28">
-        <Home />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/explore" element={<Explore />} />
+          {/* Unknown paths fall back to the landing page. */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   )

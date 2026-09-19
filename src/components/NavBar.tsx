@@ -1,17 +1,27 @@
 import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Home, ChevronDown, Menu, X } from "lucide-react";
 
+/** `to` is a real route; `href` is a placeholder until that page exists. */
+const navLinks = [
+  { name: "Home", to: "/" },
+  { name: "Explore", to: "/explore" },
+  { name: "Blog", href: "#" },
+];
+
 export function NavBar() {
-  const [activeTab, setActiveTab] = useState("Home");
   const [lang, setLang] = useState("EN");
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const navLinks = [
-    { name: "Home", href: "#" },
-    { name: "Explore", href: "#" },
-    { name: "Blog", href: "#" },
-  ];
+  const { pathname } = useLocation();
+
+  // The current route decides what is highlighted, so the nav stays correct
+  // after a back/forward or a link followed from inside a page.
+  const isActive = (link: (typeof navLinks)[number]) =>
+    link.to === "/"
+      ? pathname === "/"
+      : Boolean(link.to && pathname.startsWith(link.to));
 
   const languages = [
     { code: "EN", name: "English", flag: "🇰🇭" },
@@ -22,7 +32,7 @@ export function NavBar() {
     <header className="w-full fixed top-0 left-0 z-50 px-4 py-4 sm:px-6 md:px-10">
       <div className="max-w-7xl mx-auto bg-[#FAF9F5] border border-black/5 shadow-sm rounded-full sm:rounded-[36px] px-4 sm:px-7 py-3 flex items-center justify-between gap-4 transition-all">
         {/* Left: Brand Logo & Title */}
-        <a href="/" className="flex items-center gap-3.5 group shrink-0">
+        <Link to="/" className="flex items-center gap-3.5 group shrink-0">
           <div className="w-10 h-10 rounded-2xl bg-[#28382B] flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105">
             <Home className="w-5 h-5 stroke-[1.8]" />
           </div>
@@ -31,24 +41,27 @@ export function NavBar() {
               JumRok
             </span>
           </div>
-        </a>
+        </Link>
 
         {/* Center: Nav Items (Desktop) */}
         <nav className="hidden md:flex items-center gap-8 lg:gap-12">
-          {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              onClick={() => setActiveTab(link.name)}
-              className={`text-sm transition-colors duration-200 ${
-                activeTab === link.name
-                  ? "font-bold text-gray-900"
-                  : "font-medium text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              {link.name}
-            </a>
-          ))}
+          {navLinks.map((link) => {
+            const className = `text-sm transition-colors duration-200 ${
+              isActive(link)
+                ? "font-bold text-gray-900"
+                : "font-medium text-gray-600 hover:text-gray-900"
+            }`;
+
+            return link.to ? (
+              <Link key={link.name} to={link.to} className={className}>
+                {link.name}
+              </Link>
+            ) : (
+              <a key={link.name} href={link.href} className={className}>
+                {link.name}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Right: Language Selector & Log In */}
@@ -111,23 +124,34 @@ export function NavBar() {
       {isMobileOpen && (
         <div className="md:hidden max-w-7xl mx-auto mt-2 bg-[#FAF9F5] border border-black/5 shadow-lg rounded-3xl p-5 flex flex-col gap-4 animate-in slide-in-from-top-2">
           <nav className="flex flex-col gap-3">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                onClick={() => {
-                  setActiveTab(link.name);
-                  setIsMobileOpen(false);
-                }}
-                className={`text-base px-3 py-2 rounded-xl transition-colors ${
-                  activeTab === link.name
-                    ? "font-semibold bg-gray-200/60 text-gray-900"
-                    : "font-medium text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                {link.name}
-              </a>
-            ))}
+            {navLinks.map((link) => {
+              const className = `text-base px-3 py-2 rounded-xl transition-colors ${
+                isActive(link)
+                  ? "font-semibold bg-gray-200/60 text-gray-900"
+                  : "font-medium text-gray-600 hover:bg-gray-100"
+              }`;
+              const close = () => setIsMobileOpen(false);
+
+              return link.to ? (
+                <Link
+                  key={link.name}
+                  to={link.to}
+                  onClick={close}
+                  className={className}
+                >
+                  {link.name}
+                </Link>
+              ) : (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  onClick={close}
+                  className={className}
+                >
+                  {link.name}
+                </a>
+              );
+            })}
           </nav>
           <hr className="border-gray-200" />
           <button className="w-full bg-[#28382B] hover:bg-[#1D2B20] text-white font-semibold text-base rounded-full py-3 transition-colors shadow-sm">

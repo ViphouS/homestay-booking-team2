@@ -1,31 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ArrowUpRight, Star, Users } from "lucide-react";
 import { cn } from "cn";
 
+import { useListings } from "@/hooks/use-listings";
 import type { Listing } from "@/types/listing";
 
 const ALL_REGIONS = "All";
 
 export function ListingSection() {
-  const [listings, setListings] = useState<Listing[] | null>(null);
+  const { listings } = useListings();
   const [activeRegion, setActiveRegion] = useState(ALL_REGIONS);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    fetch("/data/listings.json")
-      .then((res) => res.json())
-      .then((data: Listing[]) => {
-        if (!cancelled) setListings(data);
-      })
-      .catch(() => {
-        if (!cancelled) setListings([]);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const regions = useMemo(() => {
     if (!listings) return [];
