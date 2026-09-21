@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { ArrowUpRight, Star, Users } from "lucide-react";
 import { cn } from "cn";
@@ -85,7 +86,10 @@ function ListingCard({ listing }: { listing: Listing }) {
   const [imageFailed, setImageFailed] = useState(false);
 
   return (
-    <article className="relative h-[360px] overflow-hidden rounded-3xl shadow-sm">
+    <Link
+      to={`/stay/${listing.id}`}
+      className="relative block h-[360px] overflow-hidden rounded-3xl shadow-sm"
+    >
       {imageFailed ? (
         <div className="absolute inset-0 bg-gradient-to-br from-[#AEBBA8] to-[#203C2D]" />
       ) : (
@@ -128,6 +132,6 @@ function ListingCard({ listing }: { listing: Listing }) {
           </span>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
