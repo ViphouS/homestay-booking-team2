@@ -21,7 +21,7 @@ There is no test runner configured in this repo.
 
 ## Architecture
 
-- **Entry point**: `src/main.tsx` mounts `<App />` inside `ThemeProvider` (`src/components/theme-provider.tsx`) and `BrowserRouter`. `ThemeProvider` manages light/dark theme via a `class` on `<html>`, persisted to `localStorage`, with a `d` keyboard shortcut to toggle.
+- **Entry point**: `src/main.tsx` mounts `<App />` inside `BrowserRouter`. Dark mode (a `ThemeProvider` toggling a `class` on `<html>`) was removed for now — most hand-built sections predate the design-token conventions and hardcode light-only colors, so a half-working toggle did more harm than good. The `:root`/`.dark` CSS variable pairs are still defined in `src/index.css` for whenever that's revisited.
 - **`src/App.tsx`** is the app shell: `NavBar` → `<main>` route table → `Footer`. Routes are `/` (`Home`) and `/explore` (`Explore`), with `*` redirecting to `/`. `about` and `profile` are scaffolded but still empty — adding them means a `<Route>` each, nothing more. `NavBar` uses `Link` + `useLocation` for its active state, so nav highlighting follows the URL rather than local state.
 - **Path alias**: `@/*` maps to `src/*` (configured in both `vite.config.ts` and `tsconfig.app.json`). Always import via `@/...` for anything outside the current directory, matching existing files.
 - **`src/pages/<page>/`** — each route owns its own folder containing its page component and that page's section components:
@@ -40,7 +40,7 @@ There is no test runner configured in this repo.
   - `FilterSidebar` is rendered twice — as the desktop rail and inside `FilterPanelTrigger`'s popover on mobile — from one component, so the two cannot drift.
   - Dates are deliberately *not* filtered on: the static catalogue has no availability calendar, so they pass through to the UI only. Wire them up when a booking API exists.
 - **`src/hooks/use-listings.ts`** is the single fetch of `/data/listings.json`, shared by `ListingSection` and `Explore`. Returns `null` listings while loading (render skeletons) and `hasError` on failure. New data-driven components should use it rather than fetching again.
-- **`src/components/`** is for chrome/primitives shared across pages, not page-specific sections: `NavBar.tsx`, `Footer.tsx`, `theme-provider.tsx`, and `ui/` (shadcn/ui-managed generic primitives — `button`, `card`, `popover`, `calendar`, `avatar`, `badge`, `input`, `separator`). Add new shadcn primitives with `npx shadcn@latest add <component>` (see `components.json` for style/alias config) rather than hand-rolling them.
+- **`src/components/`** is for chrome/primitives shared across pages, not page-specific sections: `NavBar.tsx`, `Footer.tsx`, and `ui/` (shadcn/ui-managed generic primitives — `button`, `card`, `popover`, `calendar`, `avatar`, `badge`, `input`, `separator`). Add new shadcn primitives with `npx shadcn@latest add <component>` (see `components.json` for style/alias config) rather than hand-rolling them.
 - **`src/types/listing.ts`** defines the `Listing` domain type. `ListingCategory` is derived from the `LISTING_CATEGORIES` runtime tuple (with an `isListingCategory` guard for values arriving from the URL or JSON) — add to that list rather than widening the type to `string`. The catalogue is served from `public/data/listings.json` and fetched at runtime rather than imported as a module; there is no backend/API layer yet, so any new data-driven component should go through `useListings` until one exists.
 - **Styling**: Tailwind v4 via the `@tailwindcss/vite` plugin, configured through `src/index.css` (no `tailwind.config.js`). Utility class merging uses `cn` (the `cn` npm package, re-exported from `src/lib/utils.ts`) — use `cn(...)` for any conditional/merged className rather than template-string concatenation.
 - Some hand-built sections (e.g. `NavBar.tsx`) predate the shadcn/hero conventions and use inline hex colors and template-literal class strings instead of `cn`/design tokens. Prefer the `hero/` module's conventions (typed props, `cn`, JSDoc) for new work rather than copying `NavBar.tsx`.
@@ -88,7 +88,7 @@ src/
       profile-details.tsx        # (empty)
 
   components/
-    NavBar.tsx, Footer.tsx, theme-provider.tsx
+    NavBar.tsx, Footer.tsx
     ui/                          # shadcn primitives only
       avatar.tsx, badge.tsx, button.tsx, calendar.tsx, card.tsx,
       input.tsx, popover.tsx, separator.tsx
