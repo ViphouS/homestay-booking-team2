@@ -3,6 +3,8 @@ import type { FormEvent } from "react"
 import { format } from "date-fns"
 import { X, CreditCard, CheckCircle2 } from "lucide-react"
 
+import { useAuth } from "@/components/auth-provider"
+import { addBooking } from "@/lib/bookings-client"
 import { formatPrice } from "@/lib/format-price"
 import { formatGuests } from "@/pages/home/hero"
 import type { GuestCounts } from "@/pages/home/hero"
@@ -16,6 +18,7 @@ import {
 interface BookingModalProps {
   isOpen: boolean
   onClose: () => void
+  listingId: string
   stayName: string
   currency: string
   pricePerNight: number
@@ -32,6 +35,7 @@ interface BookingModalProps {
 export default function BookingModal({
   isOpen,
   onClose,
+  listingId,
   stayName,
   currency,
   pricePerNight,
@@ -44,6 +48,7 @@ export default function BookingModal({
   serviceFee,
   total,
 }: BookingModalProps) {
+  const { user } = useAuth()
   const [step, setStep] = useState<"payment" | "processing" | "success">(
     "payment"
   )
@@ -56,7 +61,25 @@ export default function BookingModal({
     e.preventDefault()
     setStep("processing")
     // Mock payment processing — replace with a real payment provider call later
-    setTimeout(() => setStep("success"), 1200)
+    setTimeout(() => {
+      setStep("success")
+
+      // Persisted only when signed in — booking isn't gated behind login, so
+      // a guest checkout still "succeeds" in the UI but leaves no record.
+      if (user && checkIn && checkOut) {
+        addBooking({
+          userId: user.id,
+          listingId,
+          stayName,
+          checkIn: checkIn.toISOString(),
+          checkOut: checkOut.toISOString(),
+          guests,
+          nights,
+          total,
+          currency,
+        })
+      }
+    }, 1200)
   }
 
   const handleClose = () => {

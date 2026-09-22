@@ -1,6 +1,16 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, ChevronDown, Menu, X } from "lucide-react";
+
+import { useAuth } from "@/components/auth-provider";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { getInitials } from "@/lib/initials";
 
 /** `to` is a real route; `href` is a placeholder until that page exists. */
 const navLinks: { name: string; to?: string; href?: string }[] = [
@@ -15,6 +25,13 @@ export function NavBar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const { pathname } = useLocation();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   // The current route decides what is highlighted, so the nav stays correct
   // after a back/forward or a link followed from inside a page.
@@ -96,10 +113,38 @@ export function NavBar() {
             )}
           </div>
 
-          {/* Log in Button */}
-          <button className="bg-[#28382B] hover:bg-[#1D2B20] text-white font-semibold text-sm rounded-full px-6 py-2.5 transition-all shadow-sm active:scale-95 cursor-pointer">
-            Log in
-          </button>
+          {/* Log in Button / Account menu */}
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <button
+                    className="flex items-center rounded-full transition-transform cursor-pointer active:scale-95"
+                    aria-label="Account menu"
+                  >
+                    <Avatar>
+                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                    </Avatar>
+                  </button>
+                }
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut}>
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              to="/login"
+              className="bg-[#28382B] hover:bg-[#1D2B20] text-white font-semibold text-sm rounded-full px-6 py-2.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+            >
+              Log in
+            </Link>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -154,9 +199,34 @@ export function NavBar() {
             })}
           </nav>
           <hr className="border-gray-200" />
-          <button className="w-full bg-[#28382B] hover:bg-[#1D2B20] text-white font-semibold text-base rounded-full py-3 transition-colors shadow-sm">
-            Log in
-          </button>
+          {user ? (
+            <div className="flex flex-col gap-2">
+              <Link
+                to="/profile"
+                onClick={() => setIsMobileOpen(false)}
+                className="w-full rounded-full bg-[#EFEFEA] py-3 text-center text-base font-semibold text-gray-800 transition-colors"
+              >
+                Profile
+              </Link>
+              <button
+                onClick={() => {
+                  setIsMobileOpen(false);
+                  handleSignOut();
+                }}
+                className="w-full bg-[#28382B] hover:bg-[#1D2B20] text-white font-semibold text-base rounded-full py-3 transition-colors shadow-sm"
+              >
+                Log out
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              onClick={() => setIsMobileOpen(false)}
+              className="w-full bg-[#28382B] hover:bg-[#1D2B20] text-white font-semibold text-base rounded-full py-3 text-center transition-colors shadow-sm"
+            >
+              Log in
+            </Link>
+          )}
         </div>
       )}
     </header>

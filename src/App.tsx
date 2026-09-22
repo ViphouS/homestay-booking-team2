@@ -2,10 +2,14 @@ import { Navigate, Route, Routes } from "react-router-dom"
 
 import { Footer } from "./components/Footer"
 import { NavBar } from "./components/NavBar"
+import { RequireAuth } from "@/components/RequireAuth"
 import { Blog } from "@/pages/blog/Blog"
 import { BlogPost } from "@/pages/blog-post/BlogPost"
 import { Explore } from "@/pages/explore"
 import { Home } from "@/pages/home/Home"
+import { Login } from "@/pages/login/Login"
+import { Profile } from "@/pages/profile/Profile"
+import { Signup } from "@/pages/signup/Signup"
 import { StayDetails } from "@/pages/stay-details/StayDetails"
 import { ScrollToTop } from "./components/ScrollToTop"
 
@@ -27,6 +31,16 @@ export function App() {
           <Route path="/stay/:id" element={<StayDetails />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <Profile />
+              </RequireAuth>
+            }
+          />
           {/* Unknown paths fall back to the landing page. */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
