@@ -165,6 +165,7 @@ function BookingSidebar({ stay }: { stay: Listing }) {
       <BookingModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        listingId={stay.id}
         stayName={stay.name}
         currency={stay.price.currency}
         pricePerNight={stay.price.amount}
