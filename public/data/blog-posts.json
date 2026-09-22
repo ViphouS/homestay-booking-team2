@@ -1,0 +1,131 @@
+[
+  {
+    "id": "reasons-to-choose-a-homestay",
+    "slug": "5-reasons-to-choose-a-homestay-in-cambodia",
+    "title": "5 Reasons to Choose a Homestay Over a Hotel in Cambodia",
+    "excerpt": "Hotels get you a bed. A homestay gets you a family, a home-cooked meal, and a much better story to tell when you're back home.",
+    "coverImage": "https://images.unsplash.com/photo-1628194968194-5189a8b51909?auto=format&fit=crop&w=1600&q=82",
+    "category": "Travel Tips",
+    "tags": ["Homestay", "Cambodia", "First-time Visitors"],
+    "author": {
+      "name": "Sopheak Chan",
+      "avatarUrl": "https://images.example.com/authors/sopheak-chan.jpg"
+    },
+    "publishedAt": "2026-09-10",
+    "content": [
+      "It's easy to default to a hotel when you're planning a trip — the booking is familiar, the photos are polished, and you know roughly what you're getting. But in Cambodia, some of the best travel memories come from staying with a local family instead.",
+      "The first reason is simple: food. Homestay hosts cook the meals their own families eat, not a tourist-friendly version of it. You'll likely eat better, and cheaper, than you would at any restaurant nearby.",
+      "Second, you get context. A host can tell you why the village is laid out the way it is, which market day is worth planning around, and which temple down the road nobody puts in the guidebooks.",
+      "Third, your money goes further into the local economy. A homestay's nightly rate mostly stays with the family hosting you, rather than a hotel chain or booking platform.",
+      "Fourth, you slow down. Without a hotel lobby to retreat to, you end up on the porch in the evening, which is usually where the actual conversations happen.",
+      "And finally — it's simply more memorable. Ask anyone who has done both, and the homestay is almost always the story they tell first."
+    ]
+  },
+  {
+    "id": "guide-to-khmer-home-cooking",
+    "slug": "a-guide-to-khmer-home-cooking",
+    "title": "A Guide to Khmer Home Cooking You Won't Find in Restaurants",
+    "excerpt": "Restaurant menus barely scratch the surface of Khmer cuisine. Here's what's actually simmering in a Cambodian family kitchen.",
+    "coverImage": "https://images.unsplash.com/photo-1634623391440-eee532636511?auto=format&fit=crop&w=1600&q=82",
+    "category": "Food",
+    "tags": ["Food", "Culture", "Cambodia"],
+    "author": {
+      "name": "Lina Meas",
+      "avatarUrl": "https://images.example.com/authors/lina-meas.jpg"
+    },
+    "publishedAt": "2026-08-28",
+    "content": [
+      "Amok gets all the attention on restaurant menus, and for good reason — but it's really just the introduction to Khmer cooking, not the whole story.",
+      "In a home kitchen, meals are built around what's fresh that morning: whatever the market had, whatever's in season, whatever a neighbour just handed over the fence. There's very little that comes from a package.",
+      "Prahok, the fermented fish paste that flavours much of Khmer cooking, is usually the first thing a guest notices and the last thing they expect to end up loving. It doesn't show up much on tourist menus, but it's the backbone of most family meals.",
+      "Rice is the constant. Everything else — a light soup, a stir-fry, a dipping sauce — is built around a pot of rice that's usually already on the table before you sit down.",
+      "If you're staying with a family, don't be shy about asking to help in the kitchen. Most hosts are happy to show you, and it's the fastest way to actually learn how a dish comes together instead of just eating it."
+    ]
+  },
+  {
+    "id": "khmer-village-etiquette",
+    "slug": "understanding-khmer-village-etiquette",
+    "title": "Understanding Khmer Village Etiquette Before Your Stay",
+    "excerpt": "A few small customs go a long way toward being a welcome guest instead of an awkward one.",
+    "coverImage": "https://images.unsplash.com/photo-1672833474987-d50e626b7f3d?auto=format&fit=crop&w=1600&q=82",
+    "category": "Culture",
+    "tags": ["Culture", "Etiquette", "Homestay"],
+    "author": {
+      "name": "Vibol Ung",
+      "avatarUrl": "https://images.example.com/authors/vibol-ung.jpg"
+    },
+    "publishedAt": "2026-08-15",
+    "content": [
+      "Cambodian village life runs on a set of quiet customs that most guests never get told directly — but noticing and following them makes a real difference to how welcome you feel.",
+      "The traditional greeting, the sampeah, is a slight bow with palms pressed together. You'll rarely be expected to get it exactly right, but attempting it is always appreciated.",
+      "Shoes come off before entering a home — look for the row of sandals by the door, and you'll know before you're told.",
+      "The head is considered the most sacred part of the body, and the feet the least — so avoid touching anyone's head, and try not to point your feet at people or at a Buddha image.",
+      "Modesty matters more in villages than it might in Phnom Penh or Siem Reap's tourist strip. Covering shoulders and knees, especially near a temple, is a safe default.",
+      "None of this is about getting everything perfect. Hosts understand you're a visitor — the effort is what's noticed and remembered."
+    ]
+  },
+  {
+    "id": "siem-reap-beyond-angkor-wat",
+    "slug": "siem-reap-beyond-angkor-wat",
+    "title": "Siem Reap Beyond Angkor Wat: What Locals Actually Do",
+    "excerpt": "Angkor Wat deserves the hype, but it's a fraction of what makes Siem Reap worth a longer stay.",
+    "coverImage": "https://images.unsplash.com/photo-1645791973923-0a64f698d6ef?auto=format&fit=crop&w=1600&q=82",
+    "category": "Destinations",
+    "tags": ["Siem Reap", "Destinations", "Cambodia"],
+    "author": {
+      "name": "Sokha Ven",
+      "avatarUrl": "https://images.example.com/authors/sokha-ven.jpg"
+    },
+    "publishedAt": "2026-07-30",
+    "content": [
+      "Most visitors give Siem Reap a day, maybe two, entirely dedicated to the temples. Locals will tell you that's only half the trip.",
+      "The Angkor Night Market and Old Market are worth an unhurried evening — less for souvenirs, more for watching how the town actually operates after dark.",
+      "Just outside the city, the countryside opens up quickly. Rice paddies, small villages, and quiet dirt roads are a short tuk-tuk ride from the temple crowds.",
+      "Tonlé Sap Lake's floating villages are a genuinely different side of Siem Reap province — homes, schools, and shops that rise and fall with the water level through the year.",
+      "And if you're staying with a village homestay nearby, ask your host what they'd do with a free afternoon. It's usually a better recommendation than anything in a guidebook."
+    ]
+  },
+  {
+    "id": "life-on-the-mekong",
+    "slug": "life-on-the-mekong-a-riverside-story",
+    "title": "Life on the Mekong: A Riverside Story",
+    "excerpt": "The river isn't scenery here — it's the schedule, the livelihood, and the reason the village exists where it does.",
+    "coverImage": "https://images.unsplash.com/photo-1770850994002-718c87787ce5?auto=format&fit=crop&w=1600&q=82",
+    "category": "Culture",
+    "tags": ["Mekong", "Culture", "Riverside"],
+    "author": {
+      "name": "Bunthoeun Chea",
+      "avatarUrl": "https://images.example.com/authors/bunthoeun-chea.jpg"
+    },
+    "publishedAt": "2026-07-12",
+    "content": [
+      "In a riverside village along the Mekong, the day is set by the water more than the clock. Boats go out early, before the heat sets in, and come back with whatever the river gave up that morning.",
+      "Kids learn to swim before they're steady on their feet on land. It's less a skill taught deliberately than something absorbed from growing up a few steps from the bank.",
+      "Meals shift with the season — more fish when the river runs high, more vegetables from the garden when it recedes and the soil left behind is at its richest.",
+      "Staying in a homestay here usually means at least one evening boat ride, watching the sun go down over the water while someone explains which bend in the river holds the best fishing spot.",
+      "It's a slower rhythm than city life, and a few days is usually enough to feel yourself adjust to it."
+    ]
+  },
+  {
+    "id": "packing-for-a-cambodian-homestay",
+    "slug": "packing-for-a-cambodian-homestay",
+    "title": "What to Pack for a Cambodian Homestay",
+    "excerpt": "Village homestays don't need a hotel-sized suitcase — here's what's actually worth bringing.",
+    "coverImage": "https://images.unsplash.com/photo-1774846505579-4a710ff4c5fe?auto=format&fit=crop&w=1600&q=82",
+    "category": "Travel Tips",
+    "tags": ["Packing", "Travel Tips", "Homestay"],
+    "author": {
+      "name": "Chenda Pich",
+      "avatarUrl": "https://images.example.com/authors/chenda-pich.jpg"
+    },
+    "publishedAt": "2026-06-28",
+    "content": [
+      "Homestays are usually simpler than hotels, so the packing list should be too. A light, quick-dry wardrobe covers most of the trip — Cambodia's climate is warm and humid nearly year-round.",
+      "Modest clothing is worth prioritising over anything else: something that covers shoulders and knees will serve you well both in the village and at any temple you visit.",
+      "Bring a headlamp or small flashlight. Rural electricity can be inconsistent, and a bathroom trip at 2am is a lot easier with your hands free.",
+      "Cash matters more than cards outside the cities — small villages rarely have a way to take payment electronically.",
+      "Basic toiletries and any medication you need should come with you, since the nearest pharmacy might be a real drive from a rural homestay.",
+      "Beyond that, pack light. Almost everything else can be borrowed, bought locally, or simply done without for a few days."
+    ]
+  }
+]
