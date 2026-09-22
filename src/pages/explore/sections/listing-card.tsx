@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useNavigate } from "react-router-dom"
 import {
   ArrowUpRight01Icon,
   BedIcon,
@@ -68,6 +69,7 @@ function Stat({
  */
 export function ListingCard({ listing, className }: ListingCardProps) {
   const { price, rating, capacity, location } = listing
+  const navigate = useNavigate()
 
   return (
     <Card
@@ -145,7 +147,11 @@ export function ListingCard({ listing, className }: ListingCardProps) {
             </p>
           </div>
 
-          <Button type="button" size="sm">
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => navigate(`/stay/${listing.id}`)}
+          >
             View stay
             <HugeiconsIcon
               icon={ArrowUpRight01Icon}
