@@ -1,23 +1,32 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
-import { X, CreditCard, CheckCircle2 } from "lucide-react";
+import { useState } from "react"
+import type { FormEvent } from "react"
+import { format } from "date-fns"
+import { X, CreditCard, CheckCircle2 } from "lucide-react"
 
-import { formatPrice } from "@/lib/format-price";
+import { formatPrice } from "@/lib/format-price"
+import { formatGuests } from "@/pages/home/hero"
+import type { GuestCounts } from "@/pages/home/hero"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface BookingModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  stayName: string;
-  currency: string;
-  pricePerNight: number;
-  checkIn: string;
-  checkOut: string;
-  guests: number;
-  nights: number;
-  subtotal: number;
-  cleaningFee: number;
-  serviceFee: number;
-  total: number;
+  isOpen: boolean
+  onClose: () => void
+  stayName: string
+  currency: string
+  pricePerNight: number
+  checkIn: Date | undefined
+  checkOut: Date | undefined
+  guests: GuestCounts
+  nights: number
+  subtotal: number
+  cleaningFee: number
+  serviceFee: number
+  total: number
 }
 
 export default function BookingModal({
@@ -35,68 +44,69 @@ export default function BookingModal({
   serviceFee,
   total,
 }: BookingModalProps) {
-  const [step, setStep] = useState<"payment" | "processing" | "success">("payment");
-  const [cardName, setCardName] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvc, setCvc] = useState("");
-
-  if (!isOpen) return null;
+  const [step, setStep] = useState<"payment" | "processing" | "success">(
+    "payment"
+  )
+  const [cardName, setCardName] = useState("")
+  const [cardNumber, setCardNumber] = useState("")
+  const [expiry, setExpiry] = useState("")
+  const [cvc, setCvc] = useState("")
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setStep("processing");
+    e.preventDefault()
+    setStep("processing")
     // Mock payment processing — replace with a real payment provider call later
-    setTimeout(() => setStep("success"), 1200);
-  };
+    setTimeout(() => setStep("success"), 1200)
+  }
 
   const handleClose = () => {
-    onClose();
+    onClose()
     // Reset for next time the modal opens
-    setStep("payment");
-    setCardName("");
-    setCardNumber("");
-    setExpiry("");
-    setCvc("");
-  };
+    setStep("payment")
+    setCardName("")
+    setCardNumber("")
+    setExpiry("")
+    setCvc("")
+  }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-      onClick={handleClose}
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose()
+      }}
     >
-      <div
-        className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden font-body"
-        onClick={(e) => e.stopPropagation()}
+      <DialogContent
+        showCloseButton={false}
+        className="font-body gap-0 rounded-2xl bg-white p-0 shadow-xl"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-tertiary">
-          <h2 className="font-headline text-lg text-primary">
+        <div className="border-tertiary flex items-center justify-between border-b px-6 py-4">
+          <DialogTitle className="font-headline text-lg text-primary">
             {step === "success" ? "Booking Confirmed" : "Confirm & Pay"}
-          </h2>
-          <button
-            type="button"
-            onClick={handleClose}
+          </DialogTitle>
+          <DialogClose
             className="text-gray-400 hover:text-gray-700"
             aria-label="Close"
           >
             <X size={20} />
-          </button>
+          </DialogClose>
         </div>
 
         {step === "success" ? (
-          <div className="px-6 py-10 flex flex-col items-center text-center">
-            <CheckCircle2 size={48} className="text-primary mb-4" />
-            <p className="text-sm text-gray-700 mb-1">
-              Your stay at <span className="font-medium">{stayName}</span> is booked.
+          <div className="flex flex-col items-center px-6 py-10 text-center">
+            <CheckCircle2 size={48} className="mb-4 text-primary" />
+            <p className="mb-1 text-sm text-gray-700">
+              Your stay at <span className="font-medium">{stayName}</span> is
+              booked.
             </p>
-            <p className="text-xs text-gray-500 mb-6">
+            <p className="mb-6 text-xs text-gray-500">
               A confirmation has been sent to your email.
             </p>
             <button
               type="button"
               onClick={handleClose}
-              className="w-full rounded-full py-3 bg-primary text-white text-sm font-medium hover:opacity-90 transition-opacity"
+              className="w-full rounded-full bg-primary py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
             >
               Done
             </button>
@@ -104,33 +114,40 @@ export default function BookingModal({
         ) : (
           <>
             {/* Trip summary */}
-            <div className="px-6 py-4 border-b border-tertiary text-sm">
-              <div className="font-medium text-gray-800 mb-1 line-clamp-1">{stayName}</div>
-              <div className="text-gray-500 text-xs">
-                {checkIn || "Check-in"} → {checkOut || "Check-out"} · {guests} guest
-                {guests > 1 ? "s" : ""}
+            <div className="border-tertiary border-b px-6 py-4 text-sm">
+              <div className="mb-1 line-clamp-1 font-medium text-gray-800">
+                {stayName}
+              </div>
+              <div className="text-xs text-gray-500">
+                {checkIn ? format(checkIn, "dd MMM yyyy") : "Check-in"} →{" "}
+                {checkOut ? format(checkOut, "dd MMM yyyy") : "Check-out"} ·{" "}
+                {formatGuests(guests)}
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 px-6 py-4">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Name on card</label>
+                <label className="mb-1 block text-xs text-gray-500">
+                  Name on card
+                </label>
                 <input
                   type="text"
                   required
                   value={cardName}
                   onChange={(e) => setCardName(e.target.value)}
                   placeholder="Sokha Chan"
-                  className="w-full text-sm border border-tertiary rounded-lg px-3 py-2 outline-none focus:border-primary"
+                  className="border-tertiary w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Card number</label>
+                <label className="mb-1 block text-xs text-gray-500">
+                  Card number
+                </label>
                 <div className="relative">
                   <CreditCard
                     size={16}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
                   />
                   <input
                     type="text"
@@ -140,25 +157,29 @@ export default function BookingModal({
                     value={cardNumber}
                     onChange={(e) => setCardNumber(e.target.value)}
                     placeholder="1234 1234 1234 1234"
-                    className="w-full text-sm border border-tertiary rounded-lg pl-9 pr-3 py-2 outline-none focus:border-primary"
+                    className="border-tertiary w-full rounded-lg border py-2 pr-3 pl-9 text-sm outline-none focus:border-primary"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Expiry</label>
+                  <label className="mb-1 block text-xs text-gray-500">
+                    Expiry
+                  </label>
                   <input
                     type="text"
                     required
                     placeholder="MM/YY"
                     value={expiry}
                     onChange={(e) => setExpiry(e.target.value)}
-                    className="w-full text-sm border border-tertiary rounded-lg px-3 py-2 outline-none focus:border-primary"
+                    className="border-tertiary w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">CVC</label>
+                  <label className="mb-1 block text-xs text-gray-500">
+                    CVC
+                  </label>
                   <input
                     type="text"
                     required
@@ -167,13 +188,13 @@ export default function BookingModal({
                     placeholder="123"
                     value={cvc}
                     onChange={(e) => setCvc(e.target.value)}
-                    className="w-full text-sm border border-tertiary rounded-lg px-3 py-2 outline-none focus:border-primary"
+                    className="border-tertiary w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary"
                   />
                 </div>
               </div>
 
               {/* Price breakdown */}
-              <div className="space-y-1.5 text-sm text-gray-600 border-t border-tertiary pt-4">
+              <div className="border-tertiary space-y-1.5 border-t pt-4 text-sm text-gray-600">
                 <div className="flex justify-between">
                   <span>
                     {formatPrice(pricePerNight, currency)} × {nights} nights
@@ -188,7 +209,7 @@ export default function BookingModal({
                   <span>Service fee</span>
                   <span>{formatPrice(serviceFee, currency)}</span>
                 </div>
-                <div className="flex justify-between font-semibold text-primary text-base pt-2">
+                <div className="flex justify-between pt-2 text-base font-semibold text-primary">
                   <span>Total due</span>
                   <span>{formatPrice(total, currency)}</span>
                 </div>
@@ -197,17 +218,19 @@ export default function BookingModal({
               <button
                 type="submit"
                 disabled={step === "processing"}
-                className="w-full rounded-full py-3 bg-primary text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-60"
+                className="w-full rounded-full bg-primary py-3 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
               >
-                {step === "processing" ? "Processing…" : `Pay ${formatPrice(total, currency)} and confirm`}
+                {step === "processing"
+                  ? "Processing…"
+                  : `Pay ${formatPrice(total, currency)} and confirm`}
               </button>
-              <p className="text-[11px] text-gray-400 text-center">
+              <p className="text-center text-[11px] text-gray-400">
                 This is a demo checkout — no real payment is processed.
               </p>
             </form>
           </>
         )}
-      </div>
-    </div>
-  );
+      </DialogContent>
+    </Dialog>
+  )
 }
