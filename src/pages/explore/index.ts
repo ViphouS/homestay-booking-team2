@@ -32,7 +32,6 @@ export {
   type FilterSidebarProps,
 } from "./sections/filter-sidebar"
 export { ListingCard, type ListingCardProps } from "./sections/listing-card"
-export { Pagination, type PaginationProps } from "./sections/pagination"
 export {
   PriceRangeField,
   type PriceRangeFieldProps,

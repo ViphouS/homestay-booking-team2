@@ -1,12 +1,12 @@
 import * as React from "react"
 
+import { Pagination } from "@/components/pagination"
 import { useListings } from "@/hooks/use-listings"
 
 import { ActiveFilters } from "./sections/active-filters"
 import { ExploreHeader } from "./sections/explore-header"
 import { FilterPanelTrigger } from "./sections/filter-panel-trigger"
 import { FilterSidebar } from "./sections/filter-sidebar"
-import { Pagination } from "./sections/pagination"
 import { ResultsGrid } from "./sections/results-grid"
 import { ResultsToolbar } from "./sections/results-toolbar"
 import { SearchSummaryBar } from "./sections/search-summary-bar"

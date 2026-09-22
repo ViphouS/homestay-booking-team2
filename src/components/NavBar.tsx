@@ -3,10 +3,10 @@ import { Link, useLocation } from "react-router-dom";
 import { Home, ChevronDown, Menu, X } from "lucide-react";
 
 /** `to` is a real route; `href` is a placeholder until that page exists. */
-const navLinks = [
+const navLinks: { name: string; to?: string; href?: string }[] = [
   { name: "Home", to: "/" },
   { name: "Explore", to: "/explore" },
-  { name: "Blog", href: "#" },
+  { name: "Blog", to: "/blog" },
 ];
 
 export function NavBar() {
