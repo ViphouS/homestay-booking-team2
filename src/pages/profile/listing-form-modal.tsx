@@ -1,9 +1,10 @@
 import * as React from "react"
 import type { FormEvent } from "react"
-import { CheckCircle2, X } from "lucide-react"
+import { CheckCircle2, CircleAlert, X } from "lucide-react"
 import { cn } from "cn"
 
 import { useAuth } from "@/components/auth-provider"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -13,16 +14,20 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { addHostListing, updateHostListing } from "@/lib/host-listings-client"
 import type { HostListing } from "@/types/host-listing"
-import { LISTING_CATEGORIES } from "@/types/listing"
+import { isListingCategory, LISTING_CATEGORIES } from "@/types/listing"
 import type { ListingCategory } from "@/types/listing"
 
 const CURRENCY = "USD"
-
-/** Native `<select>`/`<textarea>` styled to sit alongside the `Input` primitive. */
-const NATIVE_FIELD_CLASS =
-  "w-full rounded-4xl border border-input bg-input/30 px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
 
 type FormState = {
   name: string
@@ -206,12 +211,10 @@ export function ListingFormModal({
             className="flex max-h-[75vh] flex-col gap-4 overflow-y-auto px-6 py-5"
           >
             {error ? (
-              <p
-                role="alert"
-                className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive"
-              >
-                {error}
-              </p>
+              <Alert variant="destructive">
+                <CircleAlert />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             ) : null}
 
             <div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
@@ -239,23 +242,25 @@ export function ListingFormModal({
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="listing-category">Category</Label>
-                <select
-                  id="listing-category"
+                <Select
                   value={form.category}
-                  onChange={(event) =>
-                    updateField(
-                      "category",
-                      event.target.value as ListingCategory
-                    )
-                  }
-                  className={cn(NATIVE_FIELD_CLASS, "h-9 py-0")}
+                  onValueChange={(value) => {
+                    if (value && isListingCategory(value)) {
+                      updateField("category", value)
+                    }
+                  }}
                 >
-                  {LISTING_CATEGORIES.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="listing-category" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LISTING_CATEGORIES.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="listing-room-type">Room type</Label>
@@ -350,7 +355,7 @@ export function ListingFormModal({
               </div>
               <div className="flex flex-col gap-1.5 sm:col-span-2">
                 <Label htmlFor="listing-description">Description</Label>
-                <textarea
+                <Textarea
                   id="listing-description"
                   required
                   rows={4}
@@ -359,7 +364,6 @@ export function ListingFormModal({
                     updateField("description", event.target.value)
                   }
                   placeholder="Tell guests about your home, your family, and what they'll experience."
-                  className={cn(NATIVE_FIELD_CLASS, "resize-none rounded-2xl")}
                 />
               </div>
             </div>

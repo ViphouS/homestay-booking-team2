@@ -1,9 +1,12 @@
 import * as React from "react"
-import { Pencil, Plus } from "lucide-react"
+import { format } from "date-fns"
+import { CircleAlert, Pencil, Plus } from "lucide-react"
 
 import { useAuth } from "@/components/auth-provider"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { formatPrice } from "@/lib/format-price"
 import { listHostListings } from "@/lib/host-listings-client"
 import type { HostListing, HostListingStatus } from "@/types/host-listing"
@@ -60,38 +63,66 @@ function HostListingCard({
   onEdit: () => void
 }) {
   const status = STATUS_BADGE[listing.status]
+  const reviewedOrSubmitted =
+    listing.reviewedAt && listing.status !== "pending"
+      ? `Reviewed ${format(new Date(listing.reviewedAt), "dd MMM yyyy")}`
+      : `Submitted ${format(
+          new Date(listing.submittedAt ?? listing.createdAt),
+          "dd MMM yyyy"
+        )}`
 
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-border p-4">
-      <ListingThumbnail url={listing.thumbnailUrl} alt={listing.name} />
-      <div className="min-w-0 flex-1">
-        <div className="truncate font-heading text-base text-primary">
-          {listing.name}
+    <Card size="sm">
+      <CardContent className="flex flex-col gap-4">
+        <div className="flex items-center gap-4">
+          <ListingThumbnail url={listing.thumbnailUrl} alt={listing.name} />
+          <div className="min-w-0 flex-1">
+            <div className="truncate font-heading text-base text-primary">
+              {listing.name}
+            </div>
+            <div className="mt-1 truncate text-sm text-muted-foreground">
+              {listing.area}, {listing.region} · {listing.category}
+            </div>
+            <div className="mt-1 text-sm font-semibold text-primary">
+              {formatPrice(listing.pricePerNight, listing.currency)}
+              <span className="font-normal text-muted-foreground">
+                {" "}
+                / night
+              </span>
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              {reviewedOrSubmitted}
+            </div>
+          </div>
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            <Badge variant={status.variant} className={status.className}>
+              {status.label}
+            </Badge>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onEdit}
+              aria-label={`Edit ${listing.name}`}
+            >
+              <Pencil data-icon="inline-start" />
+              Edit
+            </Button>
+          </div>
         </div>
-        <div className="mt-1 truncate text-sm text-muted-foreground">
-          {listing.area}, {listing.region} · {listing.category}
-        </div>
-        <div className="mt-1 text-sm font-semibold text-primary">
-          {formatPrice(listing.pricePerNight, listing.currency)}
-          <span className="font-normal text-muted-foreground"> / night</span>
-        </div>
-      </div>
-      <div className="flex shrink-0 flex-col items-end gap-2">
-        <Badge variant={status.variant} className={status.className}>
-          {status.label}
-        </Badge>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onEdit}
-          aria-label={`Edit ${listing.name}`}
-        >
-          <Pencil data-icon="inline-start" />
-          Edit
-        </Button>
-      </div>
-    </div>
+
+        {listing.status === "rejected" ? (
+          <Alert variant="destructive">
+            <CircleAlert />
+            <AlertTitle>Not approved</AlertTitle>
+            <AlertDescription>
+              {listing.rejectionReason ?? "No reason was given."} Edit the
+              listing to address this and resubmit it for review.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+      </CardContent>
+    </Card>
   )
 }
 

@@ -35,7 +35,12 @@ export async function listHostListings(hostId: string): Promise<HostListing[]> {
 
 export type AddHostListingInput = Omit<
   HostListing,
-  "id" | "status" | "createdAt"
+  | "id"
+  | "status"
+  | "createdAt"
+  | "submittedAt"
+  | "reviewedAt"
+  | "rejectionReason"
 >
 
 export async function addHostListing(
@@ -43,11 +48,13 @@ export async function addHostListing(
 ): Promise<HostListing> {
   await delay()
 
+  const now = new Date().toISOString()
   const listing: HostListing = {
     ...input,
     id: crypto.randomUUID(),
     status: "pending",
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    submittedAt: now,
   }
 
   writeHostListings([...readHostListings(), listing])
@@ -73,10 +80,15 @@ export async function updateHostListing(
     throw new Error("Listing not found.")
   }
 
+  // Back into review: the previous verdict no longer applies to the new
+  // details, so its review fields are cleared too.
   const updated: HostListing = {
     ...listings[index],
     ...updates,
     status: "pending",
+    submittedAt: new Date().toISOString(),
+    reviewedAt: undefined,
+    rejectionReason: undefined,
   }
   const next = [...listings]
   next[index] = updated

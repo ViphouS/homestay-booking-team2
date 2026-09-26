@@ -24,4 +24,10 @@ export type HostListing = {
   thumbnailUrl?: string
   status: HostListingStatus
   createdAt: string
+  /** When it last went into review (on create and on every edit). */
+  submittedAt?: string
+  /** Set by an admin on approve/reject (backend only). */
+  reviewedAt?: string
+  /** An admin's reason for rejecting — required by the backend to reject. */
+  rejectionReason?: string
 }

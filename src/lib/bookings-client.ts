@@ -49,7 +49,48 @@ export async function updateBookingHostStatus(
   )
 }
 
-export type AddBookingInput = Omit<Booking, "id" | "createdAt" | "hostStatus">
+/**
+ * Mirrors the schema's `cancel_booking` RPC: only a pending or confirmed
+ * booking can be cancelled, and the reason is kept for the other party.
+ */
+export async function cancelBooking(
+  id: string,
+  cancelledBy: "guest" | "host",
+  reason: string
+): Promise<Booking> {
+  const bookings = readBookings()
+  const index = bookings.findIndex((booking) => booking.id === id)
+  const current = bookings[index]
+  const status = current?.status ?? "confirmed"
+
+  if (!current || (status !== "pending" && status !== "confirmed")) {
+    throw new Error("Booking not found or can no longer be cancelled.")
+  }
+
+  const cancelled: Booking = {
+    ...current,
+    status: "cancelled",
+    cancelledAt: new Date().toISOString(),
+    cancelledBy,
+    cancellationReason: reason,
+  }
+  const next = [...bookings]
+  next[index] = cancelled
+  writeBookings(next)
+
+  return cancelled
+}
+
+export type AddBookingInput = Omit<
+  Booking,
+  | "id"
+  | "createdAt"
+  | "hostStatus"
+  | "status"
+  | "cancelledAt"
+  | "cancelledBy"
+  | "cancellationReason"
+>
 
 export async function addBooking(input: AddBookingInput): Promise<Booking> {
   const booking: Booking = {
@@ -57,6 +98,8 @@ export async function addBooking(input: AddBookingInput): Promise<Booking> {
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     hostStatus: "new",
+    // The demo checkout always "pays", so it skips straight past `pending`.
+    status: "confirmed",
   }
 
   writeBookings([...readBookings(), booking])
