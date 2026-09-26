@@ -1,54 +1,19 @@
 import * as React from "react"
-import type { FormEvent } from "react"
-import { format } from "date-fns"
 import { cn } from "cn"
 import { CircleAlert, Mail, Phone } from "lucide-react"
 
 import { useAuth } from "@/components/auth-provider"
+import { BookingStatusBadge } from "@/components/booking-status-badge"
+import { ReasonDialog } from "@/components/reason-dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  cancelBooking,
-  listBookingsForListings,
-  updateBookingHostStatus,
-} from "@/lib/bookings-client"
-import { listHostListings } from "@/lib/host-listings-client"
+import { cancelBooking, listHostBookings } from "@/lib/bookings-client"
+import { cancelBookingCopy } from "@/lib/cancel-booking-copy"
+import { formatDay } from "@/lib/format-date"
 import { formatGuests } from "@/pages/home/hero"
 import { getBookingStatus, isLiveBooking } from "@/types/booking"
-import type { Booking, BookingHostStatus, BookingStatus } from "@/types/booking"
-
-const REQUEST_DATE_FORMAT = "dd MMM yyyy"
-
-const STATUS_BADGE: Record<
-  BookingStatus,
-  {
-    label: string
-    variant: "default" | "secondary" | "destructive" | "outline"
-    className?: string
-  }
-> = {
-  pending: {
-    label: "Awaiting payment",
-    variant: "secondary",
-    className: "bg-[#F4EDE8] text-[#8C5A44]",
-  },
-  confirmed: { label: "Confirmed", variant: "default" },
-  cancelled: { label: "Cancelled", variant: "destructive" },
-  completed: { label: "Completed", variant: "outline" },
-}
+import type { Booking, BookingStatus } from "@/types/booking"
 
 const CONTACT_LINK_CLASS = cn(
   buttonVariants({ variant: "link", size: "sm" }),
@@ -83,18 +48,22 @@ function ContactLinks({ booking }: { booking: Booking }) {
   )
 }
 
+function cancelledByLabel(booking: Booking, hostId: string) {
+  if (booking.cancelledById === hostId) return "you"
+  if (booking.cancelledById === booking.guestId) return "the guest"
+  return "JumRok"
+}
+
 function RequestCard({
   request: { booking, status },
-  onHostStatusChange,
+  hostId,
   onCancel,
 }: {
   request: Request
-  onHostStatusChange: (status: BookingHostStatus) => void
+  hostId: string
   onCancel: () => void
 }) {
-  const badge = STATUS_BADGE[status]
   const isLive = isLiveBooking(status)
-  const isContacted = booking.hostStatus === "contacted"
 
   return (
     <Card size="sm" className={isLive ? undefined : "opacity-75"}>
@@ -104,24 +73,15 @@ function RequestCard({
             <span className="font-heading text-base text-primary">
               {booking.guestName ?? "Guest"}
             </span>
-            <Badge variant={badge.variant} className={badge.className}>
-              {badge.label}
-            </Badge>
-            {isLive ? (
-              <Badge variant={isContacted ? "secondary" : "outline"}>
-                {isContacted ? "Contacted" : "Not contacted yet"}
-              </Badge>
-            ) : null}
+            <BookingStatusBadge status={status} />
           </div>
           <div className="mt-1 text-sm text-muted-foreground">
-            {booking.stayName} ·{" "}
-            {format(new Date(booking.checkIn), REQUEST_DATE_FORMAT)} →{" "}
-            {format(new Date(booking.checkOut), REQUEST_DATE_FORMAT)} ·{" "}
-            {formatGuests(booking.guests)}
+            {booking.stayName} · {formatDay(booking.checkIn)} →{" "}
+            {formatDay(booking.checkOut)} · {formatGuests(booking.guests)}
           </div>
 
-          {/* Same rule as the backend's `host_booking_contacts()`: guest
-              contact details are only handed over while the booking is live. */}
+          {/* The backend's `host_booking_contacts()` only hands over contact
+              details while the booking is live. */}
           {isLive ? (
             <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm">
               <ContactLinks booking={booking} />
@@ -132,10 +92,9 @@ function RequestCard({
             <Alert variant="destructive" className="mt-3">
               <CircleAlert />
               <AlertDescription>
-                Cancelled by{" "}
-                {booking.cancelledBy === "host" ? "you" : "the guest"}
+                Cancelled by {cancelledByLabel(booking, hostId)}
                 {booking.cancelledAt
-                  ? ` on ${format(new Date(booking.cancelledAt), REQUEST_DATE_FORMAT)}`
+                  ? ` on ${formatDay(booking.cancelledAt)}`
                   : ""}
                 {booking.cancellationReason
                   ? ` — “${booking.cancellationReason}”`
@@ -145,135 +104,35 @@ function RequestCard({
           ) : null}
 
           <div className="mt-2 text-xs text-muted-foreground">
-            Requested {format(new Date(booking.createdAt), REQUEST_DATE_FORMAT)}
+            Requested {formatDay(booking.createdAt)}
           </div>
         </div>
 
         {isLive ? (
-          <div className="flex shrink-0 gap-2 sm:flex-col sm:items-end">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                onHostStatusChange(isContacted ? "new" : "contacted")
-              }
-            >
-              {isContacted ? "Mark as not contacted" : "Mark as contacted"}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive"
-              onClick={onCancel}
-            >
-              Cancel booking
-            </Button>
-          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="w-fit shrink-0 text-destructive hover:text-destructive"
+            onClick={onCancel}
+          >
+            Cancel booking
+          </Button>
         ) : null}
       </CardContent>
     </Card>
   )
 }
 
-/**
- * Asks the host why before cancelling — the reason is kept on the booking
- * for the guest, matching the backend's `cancel_booking(id, reason)`.
- */
-function CancelBookingDialog({
-  booking,
-  onOpenChange,
-  onConfirm,
-}: {
-  /** The booking being cancelled; `null` closes the dialog. */
-  booking: Booking | null
-  onOpenChange: (open: boolean) => void
-  onConfirm: (reason: string) => Promise<void>
-}) {
-  const [reason, setReason] = React.useState("")
-  const [error, setError] = React.useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
-
-  // Start blank each time a booking is opened, and keep showing the last
-  // one while the dialog animates closed (`booking` is already `null` then).
-  const [shown, setShown] = React.useState(booking)
-  if (booking && booking !== shown) {
-    setShown(booking)
-    setReason("")
-    setError(null)
-    setIsSubmitting(false)
-  }
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setError(null)
-    setIsSubmitting(true)
-    try {
-      await onConfirm(reason.trim())
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.")
-      setIsSubmitting(false)
-    }
-  }
-
-  return (
-    <AlertDialog open={booking !== null} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel this booking?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {shown
-                ? `${shown.guestName ?? "The guest"}'s stay at ${shown.stayName}, ${format(new Date(shown.checkIn), REQUEST_DATE_FORMAT)} → ${format(new Date(shown.checkOut), REQUEST_DATE_FORMAT)}. This can't be undone.`
-                : null}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          {error ? (
-            <Alert variant="destructive">
-              <CircleAlert />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="cancel-reason">Reason for the guest</Label>
-            <Textarea
-              id="cancel-reason"
-              required
-              rows={3}
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              placeholder="e.g. The house is unavailable for repairs on these dates."
-            />
-          </div>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel type="button">Keep booking</AlertDialogCancel>
-            <Button
-              type="submit"
-              variant="destructive"
-              disabled={isSubmitting || reason.trim() === ""}
-            >
-              {isSubmitting ? "Cancelling…" : "Cancel booking"}
-            </Button>
-          </AlertDialogFooter>
-        </form>
-      </AlertDialogContent>
-    </AlertDialog>
-  )
-}
-
 function RequestSection({
   title,
   requests,
-  onHostStatusChange,
+  hostId,
   onCancel,
 }: {
-  title: React.ReactNode
+  title: string
   requests: Request[]
-  onHostStatusChange: (id: string, status: BookingHostStatus) => void
+  hostId: string
   onCancel: (booking: Booking) => void
 }) {
   if (requests.length === 0) return null
@@ -285,9 +144,7 @@ function RequestSection({
         <RequestCard
           key={request.booking.id}
           request={request}
-          onHostStatusChange={(status) =>
-            onHostStatusChange(request.booking.id, status)
-          }
+          hostId={hostId}
           onCancel={() => onCancel(request.booking)}
         />
       ))}
@@ -300,28 +157,18 @@ function RequestSection({
  *
  * Every booking a guest makes on one of this host's listings, shown as a
  * request to follow up on: who, which stay, when, its status, and — while
- * it's live — how to reach the guest. Guests still go through the normal
- * checkout; on the host side there are no payouts or invoices, just a
- * "contacted" flag and the option to cancel with a reason.
- *
- * Host listings aren't bookable until the approval backend exists, so for
- * now this is usually empty.
+ * it's live — how to reach the guest. No payouts or invoices here; the host
+ * contacts the guest directly, and can cancel with a reason.
  */
 export function BookingRequests() {
   const { user } = useAuth()
   const [requests, setRequests] = React.useState<Request[] | null>(null)
+  const [hasError, setHasError] = React.useState(false)
   const [cancelling, setCancelling] = React.useState<Booking | null>(null)
 
-  React.useEffect(() => {
-    if (!user) return
-    let cancelled = false
-
-    listHostListings(user.id)
-      .then((listings) =>
-        listBookingsForListings(listings.map((listing) => listing.id))
-      )
+  const load = React.useCallback((hostId: string) => {
+    return listHostBookings(hostId)
       .then((result) => {
-        if (cancelled) return
         // Resolve statuses where the data arrives, not during render —
         // reading the clock is a side effect (same as `MyBookings`).
         const now = Date.now()
@@ -332,13 +179,22 @@ export function BookingRequests() {
           }))
         )
       })
+      .catch(() => setHasError(true))
+  }, [])
 
-    return () => {
-      cancelled = true
-    }
-  }, [user])
+  React.useEffect(() => {
+    if (user) load(user.id)
+  }, [user, load])
 
   if (!user) return null
+
+  if (hasError) {
+    return (
+      <p className="text-sm text-destructive">
+        Couldn't load your booking requests. Please refresh to try again.
+      </p>
+    )
+  }
 
   if (requests === null) {
     return (
@@ -355,65 +211,40 @@ export function BookingRequests() {
     )
   }
 
-  const replaceBooking = (updated: Booking, status?: BookingStatus) => {
-    setRequests((current) =>
-      (current ?? []).map((request) =>
-        request.booking.id === updated.id
-          ? { booking: updated, status: status ?? request.status }
-          : request
-      )
-    )
-  }
-
-  const handleHostStatusChange = async (
-    id: string,
-    hostStatus: BookingHostStatus
-  ) => {
-    await updateBookingHostStatus(id, hostStatus)
-    const request = requests.find((item) => item.booking.id === id)
-    if (request) replaceBooking({ ...request.booking, hostStatus })
-  }
-
   const handleConfirmCancel = async (reason: string) => {
     if (!cancelling) return
-    const updated = await cancelBooking(cancelling.id, "host", reason)
-    replaceBooking(updated, "cancelled")
+    await cancelBooking(cancelling.id, reason)
     setCancelling(null)
+    await load(user.id)
   }
 
   const live = requests.filter((request) => isLiveBooking(request.status))
   const past = requests.filter((request) => !isLiveBooking(request.status))
-  const toFollowUp = live.filter(
-    (request) => request.booking.hostStatus !== "contacted"
-  ).length
 
   return (
     <div className="flex flex-col gap-9">
       <RequestSection
-        title={
-          <>
-            Upcoming
-            {toFollowUp > 0 ? (
-              <span className="font-normal text-muted-foreground">
-                {" "}
-                · {toFollowUp} to follow up
-              </span>
-            ) : null}
-          </>
-        }
+        title={`Upcoming (${live.length})`}
         requests={live}
-        onHostStatusChange={handleHostStatusChange}
+        hostId={user.id}
         onCancel={setCancelling}
       />
       <RequestSection
         title="Past & cancelled"
         requests={past}
-        onHostStatusChange={handleHostStatusChange}
+        hostId={user.id}
         onCancel={setCancelling}
       />
 
-      <CancelBookingDialog
-        booking={cancelling}
+      <ReasonDialog
+        copy={
+          cancelling
+            ? cancelBookingCopy(
+                `${cancelling.guestName ?? "The guest"}'s stay at ${cancelling.stayName}, ${formatDay(cancelling.checkIn)} → ${formatDay(cancelling.checkOut)}.`,
+                "guest"
+              )
+            : null
+        }
         onOpenChange={(open) => {
           if (!open) setCancelling(null)
         }}

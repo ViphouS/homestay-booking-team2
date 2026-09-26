@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { FormEvent } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 
 import { useAuth } from "@/components/auth-provider"
 import { Button } from "@/components/ui/button"
@@ -23,12 +23,15 @@ const LINK_CLASS = "text-primary underline-offset-4 hover:underline"
  *
  * Plain controlled state, no form library — matches the rest of the repo
  * (see `hero/location-input.tsx`). On success, sends each role to its home
- * via `landingPathFor`: admins to `/admin`, hosts to their listings, users
- * to `/profile`.
+ * via `landingPathFor` — admins to `/admin`, hosts to their listings, users
+ * to `/profile` — unless a page sent them here and asked to come back.
  */
 export function Login() {
   const { signIn } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  // Set by links that need an account first (e.g. "Log in to book").
+  const returnTo = (location.state as { from?: string } | null)?.from
 
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
@@ -42,7 +45,7 @@ export function Login() {
 
     try {
       const signedIn = await signIn({ email, password })
-      navigate(landingPathFor(signedIn.role))
+      navigate(returnTo ?? landingPathFor(signedIn.role))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.")
       setIsSubmitting(false)

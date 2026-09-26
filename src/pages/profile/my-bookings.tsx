@@ -1,16 +1,27 @@
 import * as React from "react"
 import { Link } from "react-router-dom"
 import { format } from "date-fns"
+import { CircleAlert } from "lucide-react"
 
 import { useAuth } from "@/components/auth-provider"
-import { buttonVariants } from "@/components/ui/button"
-import { useListings } from "@/hooks/use-listings"
-import { listBookings } from "@/lib/bookings-client"
+import { BookingStatusBadge } from "@/components/booking-status-badge"
+import { ReasonDialog } from "@/components/reason-dialog"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cancelBooking, listMyBookings } from "@/lib/bookings-client"
+import { cancelBookingCopy } from "@/lib/cancel-booking-copy"
+import { formatDay } from "@/lib/format-date"
 import { formatPrice } from "@/lib/format-price"
 import { formatGuests } from "@/pages/home/hero"
-import type { Booking } from "@/types/booking"
+import { getBookingStatus, isLiveBooking } from "@/types/booking"
+import type { Booking, BookingStatus } from "@/types/booking"
 
-const BOOKING_DATE_FORMAT = "dd MMM yyyy"
+type Trip = {
+  booking: Booking
+  status: BookingStatus
+  /** Guests may cancel only before check-in (the database enforces it too). */
+  canCancel: boolean
+}
 
 function BookingThumbnail({
   url,
@@ -38,86 +49,149 @@ function BookingThumbnail({
 }
 
 function BookingCard({
-  booking,
-  thumbnailUrl,
+  trip: { booking, status, canCancel },
+  onCancel,
 }: {
-  booking: Booking
-  thumbnailUrl: string | undefined
+  trip: Trip
+  onCancel: () => void
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-border p-4">
-      <BookingThumbnail url={thumbnailUrl} alt={booking.stayName} />
-      <div className="flex-1">
-        <div className="font-heading text-base text-primary">
-          {booking.stayName}
+    <div className="flex flex-col gap-3 rounded-2xl border border-border p-4">
+      <div className="flex items-center gap-4">
+        <BookingThumbnail url={booking.thumbnailUrl} alt={booking.stayName} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-heading text-base text-primary">
+              {booking.stayName}
+            </span>
+            <BookingStatusBadge status={status} />
+          </div>
+          <div className="mt-1 text-sm text-muted-foreground">
+            {formatDay(booking.checkIn)} → {formatDay(booking.checkOut)} ·{" "}
+            {formatGuests(booking.guests)}
+          </div>
         </div>
-        <div className="mt-1 text-sm text-muted-foreground">
-          {format(new Date(booking.checkIn), BOOKING_DATE_FORMAT)} →{" "}
-          {format(new Date(booking.checkOut), BOOKING_DATE_FORMAT)} ·{" "}
-          {formatGuests(booking.guests)}
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <div className="text-base font-bold text-primary">
+            {formatPrice(booking.total, booking.currency)}
+          </div>
+          <div className="text-xs text-muted-foreground">total</div>
+          {canCancel ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+          ) : null}
         </div>
       </div>
-      <div className="text-right">
-        <div className="text-base font-bold text-primary">
-          {formatPrice(booking.total, booking.currency)}
-        </div>
-        <div className="mt-0.5 text-xs text-muted-foreground">total</div>
+
+      {status === "cancelled" && booking.cancellationReason ? (
+        <Alert variant="destructive">
+          <CircleAlert />
+          <AlertDescription>
+            {booking.cancelledById === booking.guestId
+              ? "You cancelled this booking"
+              : "The host cancelled this booking"}{" "}
+            — “{booking.cancellationReason}”
+          </AlertDescription>
+        </Alert>
+      ) : null}
+    </div>
+  )
+}
+
+function TripSection({
+  title,
+  trips,
+  dimmed = false,
+  onCancel,
+}: {
+  title: string
+  trips: Trip[]
+  dimmed?: boolean
+  onCancel: (booking: Booking) => void
+}) {
+  if (trips.length === 0) return null
+
+  return (
+    <div className="flex flex-col gap-3.5">
+      <h3 className="text-sm font-semibold text-primary">{title}</h3>
+      <div
+        className={
+          dimmed ? "flex flex-col gap-3.5 opacity-75" : "flex flex-col gap-3.5"
+        }
+      >
+        {trips.map((trip) => (
+          <BookingCard
+            key={trip.booking.id}
+            trip={trip}
+            onCancel={() => onCancel(trip.booking)}
+          />
+        ))}
       </div>
     </div>
   )
 }
 
 /**
- * "My Bookings" tab content.
- *
- * Reads from `bookings-client.ts`, which `BookingModal` writes to on a
- * successful (demo) checkout — so this only shows real trips a signed-in
- * user actually booked, never seed data. Split into upcoming and past by
- * comparing `checkOut` to now; past stays are shown dimmed rather than
- * tagged, since the section heading already says what they are.
+ * "My Bookings" tab content — the signed-in user's own trips from the
+ * `bookings` table, split into upcoming and past/cancelled. Every booking
+ * shows its status: until a payment server exists they stay "Awaiting
+ * payment" and the host follows up directly.
  */
 export function MyBookings() {
   const { user } = useAuth()
-  const { listings } = useListings()
-  const [upcoming, setUpcoming] = React.useState<Booking[] | null>(null)
-  const [past, setPast] = React.useState<Booking[] | null>(null)
+  const [trips, setTrips] = React.useState<Trip[] | null>(null)
+  const [hasError, setHasError] = React.useState(false)
+  const [cancelling, setCancelling] = React.useState<Booking | null>(null)
+
+  const load = React.useCallback((userId: string) => {
+    return listMyBookings(userId)
+      .then((result) => {
+        // Work out statuses where the data arrives, not during render —
+        // reading the clock is a side effect.
+        const now = Date.now()
+        const today = format(now, "yyyy-MM-dd")
+        setTrips(
+          result.map((booking) => {
+            const status = getBookingStatus(booking, now)
+            return {
+              booking,
+              status,
+              canCancel: isLiveBooking(status) && booking.checkIn > today,
+            }
+          })
+        )
+      })
+      .catch(() => setHasError(true))
+  }, [])
 
   React.useEffect(() => {
-    if (!user) return
-    let cancelled = false
-
-    listBookings(user.id).then((result) => {
-      if (cancelled) return
-
-      // Split where the data arrives, not during render — reading the
-      // clock is a side effect and React re-runs render bodies freely.
-      const now = Date.now()
-      setUpcoming(
-        result
-          .filter((booking) => new Date(booking.checkOut).getTime() >= now)
-          .sort((a, b) => a.checkIn.localeCompare(b.checkIn))
-      )
-      setPast(
-        result
-          .filter((booking) => new Date(booking.checkOut).getTime() < now)
-          .sort((a, b) => b.checkOut.localeCompare(a.checkOut))
-      )
-    })
-
-    return () => {
-      cancelled = true
-    }
-  }, [user])
+    if (user) load(user.id)
+  }, [user, load])
 
   if (!user) return null
 
-  if (upcoming === null || past === null) {
+  if (hasError) {
+    return (
+      <p className="text-sm text-destructive">
+        Couldn't load your bookings. Please refresh to try again.
+      </p>
+    )
+  }
+
+  if (trips === null) {
     return (
       <p className="text-sm text-muted-foreground">Loading your bookings…</p>
     )
   }
 
-  if (upcoming.length === 0 && past.length === 0) {
+  if (trips.length === 0) {
     return (
       <div className="flex flex-col items-start gap-3">
         <p className="text-sm text-muted-foreground">
@@ -130,40 +204,46 @@ export function MyBookings() {
     )
   }
 
-  const thumbnailFor = (listingId: string) =>
-    listings?.find((listing) => listing.id === listingId)?.thumbnailUrl
+  const handleConfirmCancel = async (reason: string) => {
+    if (!cancelling) return
+    await cancelBooking(cancelling.id, reason)
+    setCancelling(null)
+    await load(user.id)
+  }
+
+  const upcoming = trips
+    .filter((trip) => isLiveBooking(trip.status))
+    .sort((a, b) => a.booking.checkIn.localeCompare(b.booking.checkIn))
+  const past = trips.filter((trip) => !isLiveBooking(trip.status))
 
   return (
     <div className="flex flex-col gap-9">
-      {upcoming.length > 0 ? (
-        <div className="flex flex-col gap-3.5">
-          <h3 className="text-sm font-semibold text-primary">Upcoming stays</h3>
-          <div className="flex flex-col gap-3.5">
-            {upcoming.map((booking) => (
-              <BookingCard
-                key={booking.id}
-                booking={booking}
-                thumbnailUrl={thumbnailFor(booking.listingId)}
-              />
-            ))}
-          </div>
-        </div>
-      ) : null}
+      <TripSection
+        title="Upcoming stays"
+        trips={upcoming}
+        onCancel={setCancelling}
+      />
+      <TripSection
+        title="Past & cancelled"
+        trips={past}
+        dimmed
+        onCancel={setCancelling}
+      />
 
-      {past.length > 0 ? (
-        <div className="flex flex-col gap-3.5">
-          <h3 className="text-sm font-semibold text-primary">Past stays</h3>
-          <div className="flex flex-col gap-3.5 opacity-75">
-            {past.map((booking) => (
-              <BookingCard
-                key={booking.id}
-                booking={booking}
-                thumbnailUrl={thumbnailFor(booking.listingId)}
-              />
-            ))}
-          </div>
-        </div>
-      ) : null}
+      <ReasonDialog
+        copy={
+          cancelling
+            ? cancelBookingCopy(
+                `Your stay at ${cancelling.stayName}, ${formatDay(cancelling.checkIn)} → ${formatDay(cancelling.checkOut)}.`,
+                "host"
+              )
+            : null
+        }
+        onOpenChange={(open) => {
+          if (!open) setCancelling(null)
+        }}
+        onConfirm={handleConfirmCancel}
+      />
     </div>
   )
 }

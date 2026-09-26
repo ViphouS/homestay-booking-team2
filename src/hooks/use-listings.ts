@@ -1,55 +1,57 @@
 import * as React from "react"
 
+import { toListing } from "@/lib/mappers"
+import { supabase } from "@/lib/supabase"
 import type { Listing } from "@/types/listing"
 
-/** Where the static catalogue lives until there is a real API. */
-const LISTINGS_URL = "/data/listings.json"
-
 export type UseListingsResult = {
-  /** `null` while the request is in flight — render skeletons on `null`. */
+  /** `null` while the first request is in flight — render skeletons on `null`. */
   listings: Listing[] | null
   /** True once the fetch failed; `listings` is then an empty array. */
   hasError: boolean
 }
 
 /**
- * Module-level cache. Once the first fetch succeeds, every later call to
- * useListings() reuses this instead of hitting the network again — that's
- * what stops the "Loading..." flash when navigating between pages that all
- * read the same static catalogue.
+ * Module-level cache. Every page reading the catalogue shows the last result
+ * immediately (no "Loading..." flash when navigating between them) while a
+ * fresh copy loads in the background, so newly approved stays still appear.
  */
 let cachedListings: Listing[] | null = null
 
+async function fetchApprovedListings(): Promise<Listing[]> {
+  // RLS also lets hosts and admins read their unpublished listings, so the
+  // public catalogue filters to `approved` explicitly.
+  const { data, error } = await supabase
+    .from("listings")
+    .select("*")
+    .eq("status", "approved")
+    .order("created_at", { ascending: true })
+  if (error) throw new Error(error.message)
+  return data.map(toListing)
+}
+
 /**
- * Loads the homestay catalogue from `public/data/listings.json`.
+ * The public homestay catalogue: every approved row of the `listings` table.
  *
- * There is no backend yet, so every data-driven surface reads the same static
- * JSON. Centralising the fetch here keeps that assumption in one place — when
- * an API arrives, only this hook changes.
+ * Every data-driven surface (home, explore, stay details, bookings) reads it
+ * through this hook rather than querying again.
  */
 export function useListings(): UseListingsResult {
-  const [listings, setListings] = React.useState<Listing[] | null>(cachedListings)
+  const [listings, setListings] = React.useState<Listing[] | null>(
+    cachedListings
+  )
   const [hasError, setHasError] = React.useState(false)
 
   React.useEffect(() => {
-    if (cachedListings !== null) return // already have it, skip the fetch
-
     let cancelled = false
 
-    fetch(LISTINGS_URL)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Failed to load listings: ${response.status}`)
-        }
-        return response.json() as Promise<Listing[]>
-      })
+    fetchApprovedListings()
       .then((data) => {
-        if (cancelled) return
         cachedListings = data
-        setListings(data)
+        if (!cancelled) setListings(data)
       })
       .catch(() => {
-        if (cancelled) return
+        if (cancelled || cachedListings !== null) return
         setListings([])
         setHasError(true)
       })

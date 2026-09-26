@@ -1,98 +1,99 @@
+import { toHostListing } from "@/lib/mappers"
+import { supabase } from "@/lib/supabase"
 import type { HostListing } from "@/types/host-listing"
+import type { ListingCategory } from "@/types/listing"
 
 /**
- * Mock host-listings "backend" — same swappable-mock pattern as
- * `bookings-client.ts`. The Profile page's "My Listings" tab reads and writes
- * here. Every submission lands as `pending`; approval happens server-side
- * once a real backend exists.
+ * A host's own listings, backed by the `listings` table.
+ *
+ * Hosts may write content columns only (see the column grants in
+ * `schema.sql`); status changes go through `submit_listing`. New listings
+ * are inserted as `draft` and submitted straight away, so they land in the
+ * admin's review queue as `pending`.
  */
 
-const HOST_LISTINGS_KEY = "jumrok-mock-host-listings"
-const MOCK_DELAY_MS = 600
-
-function delay() {
-  return new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS))
+export type HostListingInput = {
+  name: string
+  tagline: string
+  description: string
+  category: ListingCategory
+  region: string
+  area: string
+  pricePerNight: number
+  currency: string
+  maxGuests: number
+  beds: number
+  roomType: string
+  thumbnailUrl?: string
 }
 
-function readHostListings(): HostListing[] {
-  try {
-    const raw = localStorage.getItem(HOST_LISTINGS_KEY)
-    return raw ? (JSON.parse(raw) as HostListing[]) : []
-  } catch {
-    return []
+function toColumns(input: HostListingInput) {
+  return {
+    name: input.name,
+    tagline: input.tagline,
+    description: input.description,
+    category: input.category,
+    region: input.region,
+    area: input.area,
+    price_amount: input.pricePerNight,
+    price_currency: input.currency,
+    max_guests: input.maxGuests,
+    beds: input.beds,
+    room_type: input.roomType,
+    thumbnail_url: input.thumbnailUrl ?? "",
+    images: input.thumbnailUrl ? [input.thumbnailUrl] : [],
   }
 }
 
-function writeHostListings(listings: HostListing[]) {
-  localStorage.setItem(HOST_LISTINGS_KEY, JSON.stringify(listings))
+async function submitForReview(id: string): Promise<HostListing> {
+  const { data, error } = await supabase.rpc("submit_listing", {
+    p_listing_id: id,
+  })
+  if (error) throw new Error(error.message)
+  return toHostListing(data)
 }
 
 export async function listHostListings(hostId: string): Promise<HostListing[]> {
-  return readHostListings()
-    .filter((listing) => listing.hostId === hostId)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const { data, error } = await supabase
+    .from("listings")
+    .select("*")
+    .eq("host_id", hostId)
+    .order("created_at", { ascending: false })
+  if (error) throw new Error(error.message)
+  return data.map(toHostListing)
 }
 
-export type AddHostListingInput = Omit<
-  HostListing,
-  | "id"
-  | "status"
-  | "createdAt"
-  | "submittedAt"
-  | "reviewedAt"
-  | "rejectionReason"
->
-
+/** Creates the listing (owned by the signed-in host) and sends it for review. */
 export async function addHostListing(
-  input: AddHostListingInput
+  input: HostListingInput
 ): Promise<HostListing> {
-  await delay()
-
-  const now = new Date().toISOString()
-  const listing: HostListing = {
-    ...input,
-    id: crypto.randomUUID(),
-    status: "pending",
-    createdAt: now,
-    submittedAt: now,
-  }
-
-  writeHostListings([...readHostListings(), listing])
-
-  return listing
+  const { data, error } = await supabase
+    .from("listings")
+    .insert(toColumns(input))
+    .select("id")
+    .single()
+  if (error) throw new Error(error.message)
+  return submitForReview(data.id)
 }
-
-export type UpdateHostListingInput = Omit<AddHostListingInput, "hostId">
 
 /**
- * Saves a host's edits. Any change sends the listing back to `pending` so it
- * is re-reviewed before the new details go live.
+ * Saves a host's edits. A live listing goes back to `pending` on its own (a
+ * database trigger); a draft, rejected or archived one is resubmitted here.
  */
 export async function updateHostListing(
   id: string,
-  updates: UpdateHostListingInput
+  input: HostListingInput
 ): Promise<HostListing> {
-  await delay()
+  const { data, error } = await supabase
+    .from("listings")
+    .update(toColumns(input))
+    .eq("id", id)
+    .select("*")
+    .single()
+  if (error) throw new Error(error.message)
 
-  const listings = readHostListings()
-  const index = listings.findIndex((listing) => listing.id === id)
-  if (index === -1) {
-    throw new Error("Listing not found.")
+  if (["draft", "rejected", "archived"].includes(data.status)) {
+    return submitForReview(id)
   }
-
-  // Back into review: the previous verdict no longer applies to the new
-  // details, so its review fields are cleared too.
-  const updated: HostListing = {
-    ...listings[index],
-    ...updates,
-    status: "pending",
-    submittedAt: new Date().toISOString(),
-    reviewedAt: undefined,
-    rejectionReason: undefined,
-  }
-  const next = [...listings]
-  next[index] = updated
-  writeHostListings(next)
-
-  return updated
+  return toHostListing(data)
 }

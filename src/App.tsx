@@ -4,6 +4,7 @@ import { Footer } from "./components/Footer"
 import { NavBar } from "./components/NavBar"
 import { RequireAdmin } from "@/components/RequireAdmin"
 import { RequireAuth } from "@/components/RequireAuth"
+import { AdminApprovals } from "@/pages/admin/approvals/AdminApprovals"
 import { AdminDashboard } from "@/pages/admin/dashboard/AdminDashboard"
 import { PropertyManagement } from "@/pages/admin/property-management/PropertyManagement"
 import { Blog } from "@/pages/blog/Blog"
@@ -58,6 +59,14 @@ export function App() {
             element={
               <RequireAdmin>
                 <AdminDashboard />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/approvals"
+            element={
+              <RequireAdmin>
+                <AdminApprovals />
               </RequireAdmin>
             }
           />

@@ -1,15 +1,21 @@
 import type { ListingCategory } from "@/types/listing"
 
-/** New listings start `pending` until an admin reviews them (backend, later). */
-export type HostListingStatus = "pending" | "approved" | "rejected"
+/**
+ * Mirrors the schema's `moderation_status` enum. Listings are created as
+ * `draft` and submitted straight to `pending`; an admin approves (live) or
+ * rejects them, and hosts or admins can archive them.
+ */
+export type HostListingStatus =
+  "draft" | "pending" | "approved" | "rejected" | "archived"
 
 /**
- * A listing a host has submitted — a flat subset of `Listing` so an approved
- * submission can be mapped onto the public catalogue shape later.
+ * A listing as its host (or an admin) sees it — every status, plus the
+ * moderation trail the public catalogue's `Listing` type leaves out.
  */
 export type HostListing = {
   id: string
-  hostId: string
+  hostId: string | null
+  hostName: string
   name: string
   tagline: string
   description: string
@@ -24,9 +30,9 @@ export type HostListing = {
   thumbnailUrl?: string
   status: HostListingStatus
   createdAt: string
-  /** When it last went into review (on create and on every edit). */
+  /** When it last went into review. */
   submittedAt?: string
-  /** Set by an admin on approve/reject (backend only). */
+  /** When an admin last approved or rejected it. */
   reviewedAt?: string
   /** An admin's reason for rejecting — required by the backend to reject. */
   rejectionReason?: string

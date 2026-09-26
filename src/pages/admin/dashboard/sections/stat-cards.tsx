@@ -1,8 +1,15 @@
-import { ArrowUpRight, BookOpen, Home, Users, Wallet } from "lucide-react"
+import { BookOpen, Home, Users, Wallet } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
-import type { AdminStat } from "../admin-data"
+
+export type AdminStat = {
+  label: string
+  value: string
+  /** One line of context under the number, e.g. "3 waiting for review". */
+  hint: string
+  icon: "users" | "book" | "home" | "wallet"
+}
 
 const ICONS: Record<AdminStat["icon"], LucideIcon> = {
   users: Users,
@@ -12,7 +19,20 @@ const ICONS: Record<AdminStat["icon"], LucideIcon> = {
 }
 
 /** The four headline metrics across the top of the dashboard. */
-export function StatCards({ stats }: { stats: AdminStat[] }) {
+export function StatCards({ stats }: { stats: AdminStat[] | null }) {
+  if (stats === null) {
+    return (
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div
+            key={index}
+            className="h-[150px] animate-pulse rounded-2xl bg-[#AEBBA8]/25"
+          />
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => {
@@ -34,13 +54,7 @@ export function StatCards({ stats }: { stats: AdminStat[] }) {
                 {stat.value}
               </p>
 
-              <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                <ArrowUpRight className="size-3.5 text-[#2F7D4F]" />
-                <span className="font-semibold text-[#2F7D4F]">
-                  {stat.change}
-                </span>{" "}
-                this month
-              </p>
+              <p className="text-xs text-muted-foreground">{stat.hint}</p>
             </CardContent>
           </Card>
         )

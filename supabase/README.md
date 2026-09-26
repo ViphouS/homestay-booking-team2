@@ -1,19 +1,17 @@
 # Supabase backend
 
-Everything lives in [`schema.sql`](schema.sql). It is idempotent, so the setup and every later update are the same step.
+The app keeps all of its data here: accounts, listings, blog posts, bookings and saved cards. The structure lives in [`schema.sql`](schema.sql), which is idempotent, so the setup and every later update are the same step.
 
 ## Setup
 
-1. Supabase Dashboard → **SQL Editor** → New query → paste all of `schema.sql` → **Run**.
-2. Copy `.env.example` to `.env` and fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
-3. Sign up in the app, then make yourself the first admin (nobody can do this from the app):
+Run each file in Supabase Dashboard → **SQL Editor** → New query → paste → **Run**:
 
-   ```sql
-   update public.profiles set role = 'admin'
-   where id = (select id from auth.users where email = 'you@example.com');
-   ```
-
-4. After changing `schema.sql`, update [`src/types/database.ts`](../src/types/database.ts) to match, or regenerate it (command at the top of that file).
+1. [`schema.sql`](schema.sql): tables, security rules, functions and storage.
+2. [`seed.sql`](seed.sql): the starter homestays and blog posts. Safe to re-run.
+3. Copy `.env.example` to `.env` and fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (Dashboard → Project Settings → API Keys).
+4. Create the first admin. Nobody can do this from the app, so follow the steps in [`make-admin.sql`](make-admin.sql).
+5. Recommended while testing: Authentication → Sign In / Providers → Email → turn **off** "Confirm email". With it on, new users must click an emailed link before they can log in, and Supabase's built-in mailer only sends a few emails per hour. The app handles both settings.
+6. After changing `schema.sql`, update [`src/types/database.ts`](../src/types/database.ts) to match, or regenerate it (command at the top of that file).
 
 ## Roles
 

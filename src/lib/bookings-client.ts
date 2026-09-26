@@ -1,108 +1,142 @@
-import type { Booking, BookingHostStatus } from "@/types/booking"
+import { format } from "date-fns"
+
+import { supabase } from "@/lib/supabase"
+import type { GuestCounts } from "@/pages/home/hero"
+import type { Booking } from "@/types/booking"
+import type { Database } from "@/types/database"
 
 /**
- * Mock bookings "backend" — same swappable-mock pattern as `auth-client.ts`.
- * `BookingModal` writes here on a successful (demo) checkout; the Profile
- * page's "My Bookings" tab reads a guest's own trips, and a host's "Booking
- * Requests" tab reads the bookings made on their listings.
+ * Bookings, backed by the `bookings` table.
+ *
+ * The browser can only read bookings (RLS: the guest, the listing's host, or
+ * an admin). Creating and cancelling go through the `create_booking` and
+ * `cancel_booking` RPCs, which price the stay and check permissions
+ * server-side — the client never sends a total.
  */
 
-const BOOKINGS_KEY = "jumrok-mock-bookings"
+type BookingRow = Database["public"]["Tables"]["bookings"]["Row"]
 
-function readBookings(): Booking[] {
-  try {
-    const raw = localStorage.getItem(BOOKINGS_KEY)
-    return raw ? (JSON.parse(raw) as Booking[]) : []
-  } catch {
-    return []
+/** The listing's name/photo and the guest's name, joined onto each booking. */
+export const BOOKING_SELECT =
+  "*, listing:listings(name, thumbnail_url), guest:profiles!bookings_guest_id_fkey(full_name)"
+
+/** Only a host's own listings — `!inner` drops bookings on anyone else's. */
+const HOST_BOOKING_SELECT =
+  "*, listing:listings!inner(name, thumbnail_url, host_id), guest:profiles!bookings_guest_id_fkey(full_name)"
+
+export type JoinedBookingRow = BookingRow & {
+  listing: { name: string; thumbnail_url: string } | null
+  guest: { full_name: string } | null
+}
+
+export function toBooking(row: JoinedBookingRow): Booking {
+  return {
+    id: row.id,
+    guestId: row.guest_id,
+    listingId: row.listing_id,
+    // Archived listings drop out of the join for anyone but their host/admins.
+    stayName: row.listing?.name ?? "Stay no longer listed",
+    thumbnailUrl: row.listing?.thumbnail_url || undefined,
+    checkIn: row.check_in,
+    checkOut: row.check_out,
+    guests: {
+      adults: row.adults,
+      children: row.children,
+      infants: row.infants,
+    },
+    nights: row.nights,
+    nightlyPrice: Number(row.nightly_price),
+    total: Number(row.total_amount),
+    currency: row.currency,
+    status: row.status,
+    createdAt: row.created_at,
+    cancelledAt: row.cancelled_at ?? undefined,
+    cancelledById: row.cancelled_by ?? undefined,
+    cancellationReason: row.cancellation_reason ?? undefined,
+    guestName: row.guest?.full_name || undefined,
   }
 }
 
-function writeBookings(bookings: Booking[]) {
-  localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings))
+/** A guest's own trips, newest first. */
+export async function listMyBookings(userId: string): Promise<Booking[]> {
+  const { data, error } = await supabase
+    .from("bookings")
+    .select(BOOKING_SELECT)
+    .eq("guest_id", userId)
+    .order("created_at", { ascending: false })
+    .overrideTypes<JoinedBookingRow[], { merge: false }>()
+  if (error) throw new Error(error.message)
+  return data.map(toBooking)
 }
 
-export async function listBookings(userId: string): Promise<Booking[]> {
-  return readBookings()
-    .filter((booking) => booking.userId === userId)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-}
+/**
+ * Every booking on this host's listings, newest first, with each live
+ * booking's contact details from `host_booking_contacts()` — the only way a
+ * host can see a guest's email and phone.
+ */
+export async function listHostBookings(hostId: string): Promise<Booking[]> {
+  const [bookingsResult, contactsResult] = await Promise.all([
+    supabase
+      .from("bookings")
+      .select(HOST_BOOKING_SELECT)
+      .eq("listing.host_id", hostId)
+      .order("created_at", { ascending: false })
+      .overrideTypes<JoinedBookingRow[], { merge: false }>(),
+    supabase.rpc("host_booking_contacts"),
+  ])
+  if (bookingsResult.error) throw new Error(bookingsResult.error.message)
+  if (contactsResult.error) throw new Error(contactsResult.error.message)
 
-/** Every booking made on any of the given listings, newest first. */
-export async function listBookingsForListings(
-  listingIds: string[]
-): Promise<Booking[]> {
-  const ids = new Set(listingIds)
-  return readBookings()
-    .filter((booking) => ids.has(booking.listingId))
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-}
-
-export async function updateBookingHostStatus(
-  id: string,
-  hostStatus: BookingHostStatus
-): Promise<void> {
-  writeBookings(
-    readBookings().map((booking) =>
-      booking.id === id ? { ...booking, hostStatus } : booking
-    )
+  const contacts = new Map(
+    contactsResult.data.map((contact) => [contact.booking_id, contact])
   )
+
+  return bookingsResult.data.map((row) => {
+    const contact = contacts.get(row.id)
+    return {
+      ...toBooking(row),
+      guestEmail: contact?.email || undefined,
+      guestPhone: contact?.phone || undefined,
+    }
+  })
+}
+
+export type CreateBookingInput = {
+  listingId: string
+  checkIn: Date
+  checkOut: Date
+  guests: GuestCounts
 }
 
 /**
- * Mirrors the schema's `cancel_booking` RPC: only a pending or confirmed
- * booking can be cancelled, and the reason is kept for the other party.
+ * Books a stay. The database checks availability and capacity, prices it,
+ * and creates it as `pending` (awaiting payment).
  */
-export async function cancelBooking(
-  id: string,
-  cancelledBy: "guest" | "host",
-  reason: string
-): Promise<Booking> {
-  const bookings = readBookings()
-  const index = bookings.findIndex((booking) => booking.id === id)
-  const current = bookings[index]
-  const status = current?.status ?? "confirmed"
-
-  if (!current || (status !== "pending" && status !== "confirmed")) {
-    throw new Error("Booking not found or can no longer be cancelled.")
-  }
-
-  const cancelled: Booking = {
-    ...current,
-    status: "cancelled",
-    cancelledAt: new Date().toISOString(),
-    cancelledBy,
-    cancellationReason: reason,
-  }
-  const next = [...bookings]
-  next[index] = cancelled
-  writeBookings(next)
-
-  return cancelled
+export async function createBooking({
+  listingId,
+  checkIn,
+  checkOut,
+  guests,
+}: CreateBookingInput): Promise<void> {
+  const { error } = await supabase.rpc("create_booking", {
+    p_listing_id: listingId,
+    p_check_in: format(checkIn, "yyyy-MM-dd"),
+    p_check_out: format(checkOut, "yyyy-MM-dd"),
+    p_adults: guests.adults,
+    p_children: guests.children,
+    p_infants: guests.infants,
+  })
+  if (error) throw new Error(error.message)
 }
 
-export type AddBookingInput = Omit<
-  Booking,
-  | "id"
-  | "createdAt"
-  | "hostStatus"
-  | "status"
-  | "cancelledAt"
-  | "cancelledBy"
-  | "cancellationReason"
->
-
-export async function addBooking(input: AddBookingInput): Promise<Booking> {
-  const booking: Booking = {
-    ...input,
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-    hostStatus: "new",
-    // The demo checkout always "pays", so it skips straight past `pending`.
-    status: "confirmed",
-  }
-
-  writeBookings([...readBookings(), booking])
-
-  return booking
+/**
+ * Cancels a pending or confirmed booking. Allowed for the guest (before
+ * check-in), the listing's host, or an admin; the reason is kept on the row.
+ */
+export async function cancelBooking(id: string, reason: string): Promise<void> {
+  const { error } = await supabase.rpc("cancel_booking", {
+    p_booking_id: id,
+    p_reason: reason,
+  })
+  if (error) throw new Error(error.message)
 }

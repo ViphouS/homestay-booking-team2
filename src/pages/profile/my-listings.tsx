@@ -3,32 +3,14 @@ import { format } from "date-fns"
 import { CircleAlert, Pencil, Plus } from "lucide-react"
 
 import { useAuth } from "@/components/auth-provider"
+import { ListingFormModal } from "@/components/listing-form-modal"
+import { ListingStatusBadge } from "@/components/listing-status-badge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatPrice } from "@/lib/format-price"
 import { listHostListings } from "@/lib/host-listings-client"
-import type { HostListing, HostListingStatus } from "@/types/host-listing"
-
-import { ListingFormModal } from "./listing-form-modal"
-
-const STATUS_BADGE: Record<
-  HostListingStatus,
-  {
-    label: string
-    variant: "default" | "secondary" | "destructive"
-    className?: string
-  }
-> = {
-  pending: {
-    label: "Pending review",
-    variant: "secondary",
-    className: "bg-[#F4EDE8] text-[#8C5A44]",
-  },
-  approved: { label: "Live", variant: "default" },
-  rejected: { label: "Rejected", variant: "destructive" },
-}
+import type { HostListing } from "@/types/host-listing"
 
 function ListingThumbnail({
   url,
@@ -62,7 +44,6 @@ function HostListingCard({
   listing: HostListing
   onEdit: () => void
 }) {
-  const status = STATUS_BADGE[listing.status]
   const reviewedOrSubmitted =
     listing.reviewedAt && listing.status !== "pending"
       ? `Reviewed ${format(new Date(listing.reviewedAt), "dd MMM yyyy")}`
@@ -95,9 +76,7 @@ function HostListingCard({
             </div>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-2">
-            <Badge variant={status.variant} className={status.className}>
-              {status.label}
-            </Badge>
+            <ListingStatusBadge status={listing.status} />
             <Button
               type="button"
               variant="ghost"
@@ -129,9 +108,10 @@ function HostListingCard({
 /**
  * "My Listings" tab content — hosts only (`Profile` hides the tab otherwise).
  *
- * Reads from the mock `host-listings-client`. "Create listing" and each
- * card's "Edit" open `ListingFormModal`; every submission (new or edited)
- * lands here as "Pending review" until a backend approval flow exists.
+ * The host's rows of the `listings` table, every status. "Create listing" and
+ * each card's "Edit" open `ListingFormModal`; every submission (new or
+ * edited) lands as "Pending review" until an admin approves it at
+ * `/admin/approvals`.
  */
 export function MyListings({
   onCountChange,
@@ -141,6 +121,7 @@ export function MyListings({
 }) {
   const { user } = useAuth()
   const [listings, setListings] = React.useState<HostListing[] | null>(null)
+  const [hasError, setHasError] = React.useState(false)
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   // Kept after closing so the modal's content doesn't swap mid close-animation.
   const [editingListing, setEditingListing] =
@@ -150,9 +131,13 @@ export function MyListings({
     if (!user) return
     let cancelled = false
 
-    listHostListings(user.id).then((result) => {
-      if (!cancelled) setListings(result)
-    })
+    listHostListings(user.id)
+      .then((result) => {
+        if (!cancelled) setListings(result)
+      })
+      .catch(() => {
+        if (!cancelled) setHasError(true)
+      })
 
     return () => {
       cancelled = true
@@ -160,6 +145,14 @@ export function MyListings({
   }, [user])
 
   if (!user) return null
+
+  if (hasError) {
+    return (
+      <p className="text-sm text-destructive">
+        Couldn't load your listings. Please refresh to try again.
+      </p>
+    )
+  }
 
   const openModal = (listing: HostListing | null) => {
     setEditingListing(listing)

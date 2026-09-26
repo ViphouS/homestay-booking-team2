@@ -2,14 +2,15 @@ import { Users } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
+import type { Registration } from "@/lib/admin-client"
+import { formatDay } from "@/lib/format-date"
 import { getInitials } from "@/lib/initials"
-import type { NewRegistration } from "../admin-data"
 
 /** The "New Registrations" list — the narrow right-hand column. */
 export function NewRegistrations({
   registrations,
 }: {
-  registrations: NewRegistration[]
+  registrations: Registration[] | null
 }) {
   return (
     <Card>
@@ -23,33 +24,39 @@ export function NewRegistrations({
           </span>
         </div>
 
-        <ul className="flex flex-col gap-4">
-          {registrations.map((registration) => (
-            <li
-              key={registration.id}
-              className="flex items-center justify-between gap-3"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <Avatar className="bg-[#EEF1EC]">
-                  <AvatarFallback className="text-xs font-semibold text-primary">
-                    {getInitials(registration.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {registration.name}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {registration.email}
-                  </p>
+        {registrations === null ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : registrations.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No sign-ups yet.</p>
+        ) : (
+          <ul className="flex flex-col gap-4">
+            {registrations.map((registration) => (
+              <li
+                key={registration.id}
+                className="flex items-center justify-between gap-3"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar className="bg-[#EEF1EC]">
+                    <AvatarFallback className="text-xs font-semibold text-primary">
+                      {getInitials(registration.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {registration.name}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {registration.email}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <span className="shrink-0 text-xs text-muted-foreground">
-                {registration.date}
-              </span>
-            </li>
-          ))}
-        </ul>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {formatDay(registration.createdAt)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </CardContent>
     </Card>
   )

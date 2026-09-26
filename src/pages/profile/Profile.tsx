@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { Home } from "lucide-react"
 
 import { useAuth } from "@/components/auth-provider"
@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { listBookings } from "@/lib/bookings-client"
+import { listMyBookings } from "@/lib/bookings-client"
 import { listHostListings } from "@/lib/host-listings-client"
 import { getInitials } from "@/lib/initials"
 import { listPaymentMethods } from "@/lib/payment-methods-client"
+import type { HostApplicationStatus } from "@/types/user"
 
 import { BookingRequests } from "./booking-requests"
 import { MyBookings } from "./my-bookings"
@@ -28,6 +29,25 @@ const HOST_TABS = [...GUEST_TABS, "listings", "requests"] as const
 type ProfileTab = (typeof HOST_TABS)[number]
 
 /**
+ * A user's host application at a glance. Approval turns them into a host
+ * (and replaces this with the Host chip); a rejection's note is on
+ * `/host/signup`, where they can apply again.
+ */
+function HostApplicationChip({ status }: { status: HostApplicationStatus }) {
+  if (status === "approved") return null
+  return (
+    <Link
+      to="/host/signup"
+      className="rounded-full bg-[#EEF1EC] px-3.5 py-1 text-xs font-semibold text-primary hover:underline"
+    >
+      {status === "pending"
+        ? "Host application pending"
+        : "Host application not approved"}
+    </Link>
+  )
+}
+
+/**
  * Account page — always rendered behind `RequireAuth` at the route level.
  *
  * Two columns above `lg` (stacked below it): a sticky identity card — avatar,
@@ -41,7 +61,7 @@ type ProfileTab = (typeof HOST_TABS)[number]
  * and "Booking Requests" tabs; for everyone else an unknown or host-only tab falls back to details.
  */
 export function Profile() {
-  const { user, signOut } = useAuth()
+  const { user, hostApplication, signOut } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -55,14 +75,17 @@ export function Profile() {
 
   React.useEffect(() => {
     if (!user) return
-    listBookings(user.id).then((bookings) => setBookingsCount(bookings.length))
-    listPaymentMethods(user.id).then((methods) =>
-      setPaymentMethodsCount(methods.length)
-    )
+    // The stats strip is a nice-to-have: on failure it just keeps showing "–".
+    listMyBookings(user.id)
+      .then((bookings) => setBookingsCount(bookings.length))
+      .catch(() => {})
+    listPaymentMethods(user.id)
+      .then((methods) => setPaymentMethodsCount(methods.length))
+      .catch(() => {})
     if (user.role === "host") {
-      listHostListings(user.id).then((listings) =>
-        setListingsCount(listings.length)
-      )
+      listHostListings(user.id)
+        .then((listings) => setListingsCount(listings.length))
+        .catch(() => {})
     }
   }, [user])
 
@@ -113,6 +136,9 @@ export function Profile() {
                   <Home size={12} strokeWidth={2.2} />
                   Host
                 </span>
+              ) : null}
+              {user.role === "user" && hostApplication ? (
+                <HostApplicationChip status={hostApplication.status} />
               ) : null}
               {user.createdAt ? (
                 <span className="rounded-full bg-[#F4EDE8] px-3.5 py-1 text-xs font-semibold text-[#8C5A44]">

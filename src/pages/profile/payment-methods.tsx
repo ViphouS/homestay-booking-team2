@@ -3,6 +3,7 @@ import type { FormEvent } from "react"
 import { CreditCard } from "lucide-react"
 
 import { useAuth } from "@/components/auth-provider"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,9 +18,9 @@ import type { PaymentMethod } from "@/types/payment-method"
 /**
  * "Payment Methods" tab content.
  *
- * Mock saved cards, same "demo checkout" spirit as `BookingModal` — no real
- * payment processing, and only masked card data (never a full number) is
- * ever written to storage.
+ * Saved cards from the `payment_methods` table. No real payment processing:
+ * only masked card data (brand, last 4, expiry — never the full number) is
+ * sent to the database. The first card saved becomes the default.
  */
 export function PaymentMethods() {
   const { user } = useAuth()
@@ -47,16 +48,9 @@ export function PaymentMethods() {
     event.preventDefault()
     setError(null)
 
-    const digits = cardNumber.replace(/\s/g, "")
-    if (digits.length < 4) {
-      setError("Enter a valid card number.")
-      return
-    }
-
     setIsSaving(true)
     try {
       await addPaymentMethod({
-        userId: user.id,
         cardNumber,
         expiry,
         cardholderName,
@@ -74,12 +68,25 @@ export function PaymentMethods() {
   }
 
   const handleRemove = async (id: string) => {
-    await removePaymentMethod(id)
-    await refresh(user.id)
+    setError(null)
+    try {
+      await removePaymentMethod(id)
+      await refresh(user.id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.")
+    }
   }
 
   return (
     <div className="flex flex-col gap-4">
+      {error && !isAdding ? (
+        <p
+          role="alert"
+          className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive"
+        >
+          {error}
+        </p>
+      ) : null}
       {methods === null ? (
         <p className="text-sm text-muted-foreground">
           Loading your payment methods…
@@ -96,8 +103,11 @@ export function PaymentMethods() {
                 <div className="flex items-center gap-3">
                   <CreditCard size={18} className="text-muted-foreground" />
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-foreground">
+                    <span className="flex items-center gap-2 text-sm font-medium text-foreground">
                       {method.brand} •••• {method.last4}
+                      {method.isDefault ? (
+                        <Badge variant="secondary">Default</Badge>
+                      ) : null}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {method.cardholderName} · Expires {method.expiry}

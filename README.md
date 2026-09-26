@@ -1,25 +1,36 @@
-# React + TypeScript + Vite + shadcn/ui
+# JumRok
 
-This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
+A homestay booking site for Cambodia. Guests search and book stays, hosts list their homes, and admins approve hosts and listings. It's built with React, TypeScript, Vite and shadcn/ui, and all data lives in [Supabase](https://supabase.com).
 
-## Adding components
+## Run it locally
 
-To add components to your app, run the following command:
+1. Set up the Supabase project once by following [`supabase/README.md`](supabase/README.md): run the schema, seed the starter content, create an admin.
+2. Copy `.env.example` to `.env` and add the project's URL and publishable key.
+3. Install and start:
 
-```bash
-npx shadcn@latest add button
-```
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-This will place the ui components in the `src/components` directory.
+The other commands (`build`, `lint`, `typecheck`, `format`) are listed in [AGENTS.md](AGENTS.md#commands).
 
-## Using components
+## Roles
 
-To use the components in your app, import them as follows:
+- **Guest (user):** anyone who signs up. Books stays and saves cards.
+- **Host:** a user who applied through "Become a Host" and was approved by an admin. Adds listings and sees booking requests with guests' contact details.
+- **Admin:** set up by hand ([`supabase/make-admin.sql`](supabase/make-admin.sql)). Approves hosts and listings and manages bookings and properties at `/admin`.
 
-```tsx
-import { Button } from "@/components/ui/button"
-```
+Everyone logs in at the same `/login` and lands on the page for their role.
+
+## Deploy to Vercel
+
+1. Import the repo in Vercel. It detects Vite on its own; the build command is `npm run build` and the output is `dist`.
+2. In **Settings → Environment Variables**, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` with the same values as `.env`. Redeploy after adding them, because Vite bakes them in at build time.
+3. In Supabase, go to **Authentication → URL Configuration**. Set **Site URL** to your Vercel address (e.g. `https://homestay-booking-team2.vercel.app`) and add it under **Redirect URLs**. Confirmation emails use this address.
+
+[`vercel.json`](vercel.json) sends every path to `index.html`, so refreshing on a page like `/explore` or `/admin` works.
 
 ## Project structure
 
-See [AGENTS.md](./AGENTS.md) for the current architecture: each route gets its own folder under `src/pages/<page>/` holding its page component and that page's own section components, generic shadcn primitives live in `src/components/ui/`, and shared chrome (`NavBar`, `Footer`, `theme-provider`) lives directly under `src/components/`.
+See [AGENTS.md](AGENTS.md) for the architecture and conventions: how pages, shared components, the Supabase data clients and the shadcn primitives are organised.

@@ -6,7 +6,7 @@ import { useAuth } from "@/components/auth-provider"
 /**
  * Route guard — redirects to `/login` unless a session exists.
  *
- * Renders nothing while the initial session check (from `localStorage`) is
+ * Renders nothing while the initial Supabase session check is
  * still in flight, to avoid a flash of the login redirect for a user who
  * turns out to already be signed in.
  */

@@ -15,6 +15,7 @@ import { getInitials } from "@/lib/initials";
 /** Admin pages, shown in the account menu (desktop) and the mobile menu. */
 const adminLinks = [
   { name: "Dashboard", to: "/admin" },
+  { name: "Approvals", to: "/admin/approvals" },
   { name: "Bookings", to: "/admin/bookings" },
   { name: "Properties", to: "/admin/properties" },
 ];

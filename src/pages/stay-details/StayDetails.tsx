@@ -79,10 +79,8 @@ function BookingSidebar({ stay }: { stay: Listing }) {
   const nights =
     checkIn && checkOut ? differenceInCalendarDays(checkOut, checkIn) : 0
   const hasValidStay = nights > 0
-  const subtotal = stay.price.amount * nights
-  const cleaningFee = 8
-  const serviceFee = Math.round(subtotal * 0.1)
-  const total = subtotal + cleaningFee + serviceFee
+  // Exactly what `create_booking` charges: nightly price × nights.
+  const total = stay.price.amount * nights
 
   return (
     <aside className="border-tertiary font-body h-fit w-full shrink-0 rounded-2xl border bg-white p-6 lg:sticky lg:top-24 lg:w-[360px]">
@@ -139,20 +137,12 @@ function BookingSidebar({ stay }: { stay: Listing }) {
                 {formatPrice(stay.price.amount, stay.price.currency)} × {nights}{" "}
                 nights
               </span>
-              <span>{formatPrice(subtotal, stay.price.currency)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Cleaning fee</span>
-              <span>{formatPrice(cleaningFee, stay.price.currency)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Service fee</span>
-              <span>{formatPrice(serviceFee, stay.price.currency)}</span>
+              <span>{formatPrice(total, stay.price.currency)}</span>
             </div>
           </div>
 
           <div className="border-tertiary mt-4 flex justify-between border-t pt-4 text-base font-semibold text-primary">
-            <span>Total due</span>
+            <span>Total</span>
             <span>{formatPrice(total, stay.price.currency)}</span>
           </div>
         </>
@@ -173,9 +163,6 @@ function BookingSidebar({ stay }: { stay: Listing }) {
         checkOut={checkOut}
         guests={guests}
         nights={nights}
-        subtotal={subtotal}
-        cleaningFee={cleaningFee}
-        serviceFee={serviceFee}
         total={total}
       />
     </aside>

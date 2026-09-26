@@ -148,7 +148,7 @@ export function ListingFormModal({
       }
       const saved = listing
         ? await updateHostListing(listing.id, input)
-        : await addHostListing({ ...input, hostId: user.id })
+        : await addHostListing(input)
       onSaved(saved)
       setStep("submitted")
     } catch (err) {
