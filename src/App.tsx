@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from "react-router-dom"
 import { Footer } from "./components/Footer"
 import { NavBar } from "./components/NavBar"
 import { RequireAuth } from "@/components/RequireAuth"
+import { AdminDashboard } from "@/pages/admin/dashboard/AdminDashboard"
+import { PropertyManagement } from "@/pages/admin/property-management/PropertyManagement"
 import { Blog } from "@/pages/blog/Blog"
 import { BlogPost } from "@/pages/blog-post/BlogPost"
 import { Explore } from "@/pages/explore"
@@ -38,6 +40,22 @@ export function App() {
             element={
               <RequireAuth>
                 <Profile />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <RequireAuth>
+                <AdminDashboard />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/admin/properties"
+            element={
+              <RequireAuth>
+                <PropertyManagement />
               </RequireAuth>
             }
           />
