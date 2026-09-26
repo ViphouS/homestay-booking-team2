@@ -1,3 +1,6 @@
+/** Missing means "guest" — accounts created before hosting existed have no role. */
+export type UserRole = "guest" | "host"
+
 export type User = {
   id: string
   name: string
@@ -12,4 +15,7 @@ export type User = {
   idNumber?: string
   /** Billing address for payments. */
   address?: string
+  role?: UserRole
+  /** ISO timestamp of when the account became a host. */
+  hostSince?: string
 }

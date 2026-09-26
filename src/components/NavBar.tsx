@@ -17,6 +17,7 @@ const navLinks: { name: string; to?: string; href?: string }[] = [
   { name: "Home", to: "/" },
   { name: "Explore", to: "/explore" },
   { name: "Blog", to: "/blog" },
+  { name: "Become a Host", to: "/host/signup" },
 ];
 
 export function NavBar() {
@@ -27,6 +28,12 @@ export function NavBar() {
   const { pathname } = useLocation();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Hosts already have "My Listings" on their profile.
+  const visibleLinks =
+    user?.role === "host"
+      ? navLinks.filter((link) => link.to !== "/host/signup")
+      : navLinks;
 
   const handleSignOut = async () => {
     await signOut();
@@ -62,7 +69,7 @@ export function NavBar() {
 
         {/* Center: Nav Items (Desktop) */}
         <nav className="hidden md:flex items-center gap-8 lg:gap-12">
-          {navLinks.map((link) => {
+          {visibleLinks.map((link) => {
             const className = `text-sm transition-colors duration-200 ${
               isActive(link)
                 ? "font-bold text-gray-900"
@@ -169,7 +176,7 @@ export function NavBar() {
       {isMobileOpen && (
         <div className="md:hidden max-w-7xl mx-auto mt-2 bg-[#FAF9F5] border border-black/5 shadow-lg rounded-3xl p-5 flex flex-col gap-4 animate-in slide-in-from-top-2">
           <nav className="flex flex-col gap-3">
-            {navLinks.map((link) => {
+            {visibleLinks.map((link) => {
               const className = `text-base px-3 py-2 rounded-xl transition-colors ${
                 isActive(link)
                   ? "font-semibold bg-gray-200/60 text-gray-900"

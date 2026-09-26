@@ -44,6 +44,8 @@ function toPublicUser(user: StoredUser): User {
     dateOfBirth: user.dateOfBirth,
     idNumber: user.idNumber,
     address: user.address,
+    role: user.role,
+    hostSince: user.hostSince,
   }
 }
 
@@ -51,12 +53,15 @@ export type SignUpInput = {
   name: string
   email: string
   password: string
+  /** Create the account as a host straight away (the "Become a host" sign-up). */
+  asHost?: boolean
 }
 
 export async function signUp({
   name,
   email,
   password,
+  asHost,
 }: SignUpInput): Promise<User> {
   await delay()
 
@@ -67,12 +72,15 @@ export async function signUp({
     throw new Error("An account with this email already exists.")
   }
 
+  const now = new Date().toISOString()
   const newUser: StoredUser = {
     id: crypto.randomUUID(),
     name,
     email: normalizedEmail,
     password,
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    role: asHost ? "host" : "guest",
+    hostSince: asHost ? now : undefined,
   }
 
   writeUsers([...users, newUser])
@@ -84,9 +92,15 @@ export async function signUp({
 export type SignInInput = {
   email: string
   password: string
+  /** Host log-in: rejects accounts that haven't become hosts yet. */
+  asHost?: boolean
 }
 
-export async function signIn({ email, password }: SignInInput): Promise<User> {
+export async function signIn({
+  email,
+  password,
+  asHost,
+}: SignInInput): Promise<User> {
   await delay()
 
   const normalizedEmail = email.trim().toLowerCase()
@@ -96,6 +110,10 @@ export async function signIn({ email, password }: SignInInput): Promise<User> {
 
   if (!user || user.password !== password) {
     throw new Error("Incorrect email or password.")
+  }
+
+  if (asHost && user.role !== "host") {
+    throw new Error("This account isn't a host yet.")
   }
 
   localStorage.setItem(SESSION_KEY, user.id)
@@ -117,7 +135,7 @@ export async function getSession(): Promise<User | null> {
 }
 
 export type UpdateProfileInput = Partial<
-  Omit<User, "id" | "email" | "createdAt">
+  Omit<User, "id" | "email" | "createdAt" | "role" | "hostSince">
 >
 
 export async function updateProfile(
@@ -133,6 +151,29 @@ export async function updateProfile(
   }
 
   const updatedUser: StoredUser = { ...users[index], ...updates }
+  const nextUsers = [...users]
+  nextUsers[index] = updatedUser
+  writeUsers(nextUsers)
+
+  return toPublicUser(updatedUser)
+}
+
+/** Upgrades an existing account to a host in place — same profile, new role. */
+export async function becomeHost(userId: string): Promise<User> {
+  await delay()
+
+  const users = readUsers()
+  const index = users.findIndex((candidate) => candidate.id === userId)
+  if (index === -1) {
+    throw new Error("User not found.")
+  }
+
+  const current = users[index]
+  const updatedUser: StoredUser = {
+    ...current,
+    role: "host",
+    hostSince: current.hostSince ?? new Date().toISOString(),
+  }
   const nextUsers = [...users]
   nextUsers[index] = updatedUser
   writeUsers(nextUsers)

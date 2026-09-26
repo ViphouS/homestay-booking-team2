@@ -77,6 +77,9 @@ export default function BookingModal({
           nights,
           total,
           currency,
+          guestName: user.name,
+          guestEmail: user.email,
+          guestPhone: user.phone,
         })
       }
     }, 1200)

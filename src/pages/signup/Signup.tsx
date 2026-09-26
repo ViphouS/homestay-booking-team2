@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { FormEvent } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, Navigate, useNavigate } from "react-router-dom"
 
 import { useAuth } from "@/components/auth-provider"
 import { Button } from "@/components/ui/button"
@@ -16,15 +16,27 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 const MIN_PASSWORD_LENGTH = 6
+const LINK_CLASS = "text-primary underline-offset-4 hover:underline"
+const HOST_LANDING = "/profile?tab=listings"
+
+type SignupProps = {
+  /** Host sign-up (`/host/signup`, the navbar's "Become a Host"). */
+  asHost?: boolean
+}
 
 /**
- * Sign-up form.
+ * Sign-up form, shared by the guest (`/signup`) and host (`/host/signup`)
+ * routes.
  *
  * Plain controlled state, no form library — matches the rest of the repo
- * (see `hero/location-input.tsx`). On success, redirects to `/profile`.
+ * (see `hero/location-input.tsx`). On success, redirects to `/profile`
+ * (hosts land on its "My Listings" tab).
+ *
+ * On the host route a signed-in guest isn't asked to sign up again — they
+ * get `BecomeHostCard`, which upgrades the same account in place.
  */
-export function Signup() {
-  const { signUp } = useAuth()
+export function Signup({ asHost = false }: SignupProps) {
+  const { user, isLoading, signUp } = useAuth()
   const navigate = useNavigate()
 
   const [name, setName] = React.useState("")
@@ -49,20 +61,33 @@ export function Signup() {
 
     setIsSubmitting(true)
     try {
-      await signUp({ name, email, password })
-      navigate("/profile")
+      await signUp({ name, email, password, asHost })
+      navigate(asHost ? HOST_LANDING : "/profile")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.")
       setIsSubmitting(false)
     }
   }
 
+  if (asHost) {
+    // Wait for the session check so a signed-in user never sees the form flash.
+    if (isLoading) return null
+    if (user?.role === "host") return <Navigate to={HOST_LANDING} replace />
+    if (user) return <BecomeHostCard />
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-md flex-col px-4 py-10 sm:px-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
-          <CardDescription>Create your JumRok account.</CardDescription>
+          <CardTitle className="text-2xl">
+            {asHost ? "Become a host" : "Sign up"}
+          </CardTitle>
+          <CardDescription>
+            {asHost
+              ? "List your homestay on JumRok and welcome travellers into your home."
+              : "Create your JumRok account."}
+          </CardDescription>
         </CardHeader>
         <form
           onSubmit={handleSubmit}
@@ -129,19 +154,90 @@ export function Signup() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? "Creating account…" : "Sign up"}
+              {isSubmitting
+                ? "Creating account…"
+                : asHost
+                  ? "Sign up as host"
+                  : "Sign up"}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
+              {asHost ? "Already a host?" : "Already have an account?"}{" "}
               <Link
-                to="/login"
-                className="text-primary underline-offset-4 hover:underline"
+                to={asHost ? "/host/login" : "/login"}
+                className={LINK_CLASS}
               >
-                Log in
+                {asHost ? "Log in as host" : "Log in"}
               </Link>
             </p>
           </CardFooter>
         </form>
+      </Card>
+    </div>
+  )
+}
+
+/**
+ * Host upgrade for an already signed-in guest: one confirm, same account —
+ * bookings and details carry over, the profile just gains the Host badge
+ * and "My Listings" tab.
+ */
+function BecomeHostCard() {
+  const { user, becomeHost } = useAuth()
+  const navigate = useNavigate()
+
+  const [error, setError] = React.useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  if (!user) return null
+
+  const handleConfirm = async () => {
+    setError(null)
+    setIsSubmitting(true)
+    try {
+      await becomeHost()
+      navigate(HOST_LANDING)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.")
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="mx-auto flex w-full max-w-md flex-col px-4 py-10 sm:px-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Become a host</CardTitle>
+          <CardDescription>
+            You're signed in as{" "}
+            <span className="font-medium text-foreground">{user.name}</span>.
+            Turn this account into a host account to start listing your homestay
+            — your bookings and details stay as they are.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {error ? (
+            <p
+              role="alert"
+              className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            >
+              {error}
+            </p>
+          ) : null}
+          <ul className="flex list-disc flex-col gap-1.5 pl-5 text-sm text-muted-foreground">
+            <li>Create listings from your profile's "My Listings" tab</li>
+            <li>New listings are reviewed by our team before going live</li>
+          </ul>
+        </CardContent>
+        <CardFooter>
+          <Button
+            type="button"
+            disabled={isSubmitting}
+            className="w-full"
+            onClick={handleConfirm}
+          >
+            {isSubmitting ? "Setting up…" : "Become a host"}
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   )

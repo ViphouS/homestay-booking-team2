@@ -15,13 +15,21 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+const LINK_CLASS = "text-primary underline-offset-4 hover:underline"
+
+type LoginProps = {
+  /** Host log-in (`/host/login`): host copy, host-only accounts, lands on My Listings. */
+  asHost?: boolean
+}
+
 /**
- * Sign-in form.
+ * Sign-in form, shared by the guest (`/login`) and host (`/host/login`) routes.
  *
  * Plain controlled state, no form library — matches the rest of the repo
- * (see `hero/location-input.tsx`). On success, redirects to `/profile`.
+ * (see `hero/location-input.tsx`). On success, redirects to `/profile`
+ * (hosts land on its "My Listings" tab).
  */
-export function Login() {
+export function Login({ asHost = false }: LoginProps) {
   const { signIn } = useAuth()
   const navigate = useNavigate()
 
@@ -36,8 +44,8 @@ export function Login() {
     setIsSubmitting(true)
 
     try {
-      await signIn({ email, password })
-      navigate("/profile")
+      await signIn({ email, password, asHost })
+      navigate(asHost ? "/profile?tab=listings" : "/profile")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.")
       setIsSubmitting(false)
@@ -48,8 +56,14 @@ export function Login() {
     <div className="mx-auto flex w-full max-w-md flex-col px-4 py-10 sm:px-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Log in</CardTitle>
-          <CardDescription>Welcome back to JumRok.</CardDescription>
+          <CardTitle className="text-2xl">
+            {asHost ? "Host log in" : "Log in"}
+          </CardTitle>
+          <CardDescription>
+            {asHost
+              ? "Manage your homestay listings."
+              : "Welcome back to JumRok."}
+          </CardDescription>
         </CardHeader>
         <form
           onSubmit={handleSubmit}
@@ -94,15 +108,37 @@ export function Login() {
             <Button type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting ? "Logging in…" : "Log in"}
             </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Link
-                to="/signup"
-                className="text-primary underline-offset-4 hover:underline"
-              >
-                Sign up
-              </Link>
-            </p>
+            {asHost ? (
+              <>
+                <p className="text-center text-sm text-muted-foreground">
+                  New to hosting?{" "}
+                  <Link to="/host/signup" className={LINK_CLASS}>
+                    Sign up as host
+                  </Link>
+                </p>
+                <p className="text-center text-xs text-muted-foreground">
+                  Not a host?{" "}
+                  <Link to="/login" className={LINK_CLASS}>
+                    Log in as guest
+                  </Link>
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-center text-sm text-muted-foreground">
+                  Don't have an account?{" "}
+                  <Link to="/signup" className={LINK_CLASS}>
+                    Sign up
+                  </Link>
+                </p>
+                <p className="text-center text-xs text-muted-foreground">
+                  Are you a host?{" "}
+                  <Link to="/host/login" className={LINK_CLASS}>
+                    Log in as host
+                  </Link>
+                </p>
+              </>
+            )}
           </CardFooter>
         </form>
       </Card>

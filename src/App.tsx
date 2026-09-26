@@ -33,6 +33,8 @@ export function App() {
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/host/login" element={<Login asHost />} />
+          <Route path="/host/signup" element={<Signup asHost />} />
           <Route
             path="/profile"
             element={

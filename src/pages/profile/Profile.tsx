@@ -1,5 +1,6 @@
 import * as React from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { Home } from "lucide-react"
 
 import { useAuth } from "@/components/auth-provider"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -8,16 +9,23 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { listBookings } from "@/lib/bookings-client"
+import { listHostListings } from "@/lib/host-listings-client"
 import { getInitials } from "@/lib/initials"
 import { listPaymentMethods } from "@/lib/payment-methods-client"
 
+import { BookingRequests } from "./booking-requests"
 import { MyBookings } from "./my-bookings"
+import { MyListings } from "./my-listings"
 import { PaymentMethods } from "./payment-methods"
 import { ProfileDetails } from "./profile-details"
 
 /** The active tab's underline color, matching the identity card's "Member since" chip. */
 const ACCENT_TAB_CLASS =
   "flex-none px-0 py-3 after:bg-[#E5B5A1] data-active:text-primary"
+
+const GUEST_TABS = ["details", "bookings", "payment"] as const
+const HOST_TABS = [...GUEST_TABS, "listings", "requests"] as const
+type ProfileTab = (typeof HOST_TABS)[number]
 
 /**
  * Account page — always rendered behind `RequireAuth` at the route level.
@@ -27,15 +35,23 @@ const ACCENT_TAB_CLASS =
  * content-plus-sidebar shape `StayDetails` already uses for its booking
  * widget, rather than a generic settings-sidebar layout. The tabs and their
  * shared content card sit alongside it.
+ *
+ * The active tab lives in `?tab=` so it can be deep-linked (host log-in and
+ * sign-up land on `?tab=listings`). Hosts get a Host chip plus "My Listings"
+ * and "Booking Requests" tabs; for everyone else an unknown or host-only tab falls back to details.
  */
 export function Profile() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [bookingsCount, setBookingsCount] = React.useState<number | null>(null)
   const [paymentMethodsCount, setPaymentMethodsCount] = React.useState<
     number | null
   >(null)
+  const [listingsCount, setListingsCount] = React.useState<number | null>(null)
+
+  const isHost = user?.role === "host"
 
   React.useEffect(() => {
     if (!user) return
@@ -43,9 +59,26 @@ export function Profile() {
     listPaymentMethods(user.id).then((methods) =>
       setPaymentMethodsCount(methods.length)
     )
+    if (user.role === "host") {
+      listHostListings(user.id).then((listings) =>
+        setListingsCount(listings.length)
+      )
+    }
   }, [user])
 
   if (!user) return null
+
+  const tabs: readonly string[] = isHost ? HOST_TABS : GUEST_TABS
+  const requestedTab = searchParams.get("tab") ?? ""
+  const activeTab = (
+    tabs.includes(requestedTab) ? requestedTab : "details"
+  ) as ProfileTab
+
+  const handleTabChange = (value: ProfileTab) => {
+    setSearchParams(value === "details" ? {} : { tab: value }, {
+      replace: true,
+    })
+  }
 
   const handleSignOut = async () => {
     await signOut()
@@ -74,11 +107,19 @@ export function Profile() {
             <div className="mt-1 text-sm text-muted-foreground">
               {user.email}
             </div>
-            {user.createdAt ? (
-              <span className="mt-3 rounded-full bg-[#F4EDE8] px-3.5 py-1 text-xs font-semibold text-[#8C5A44]">
-                Member since {new Date(user.createdAt).getFullYear()}
-              </span>
-            ) : null}
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              {isHost ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EEF1EC] px-3.5 py-1 text-xs font-semibold text-primary">
+                  <Home size={12} strokeWidth={2.2} />
+                  Host
+                </span>
+              ) : null}
+              {user.createdAt ? (
+                <span className="rounded-full bg-[#F4EDE8] px-3.5 py-1 text-xs font-semibold text-[#8C5A44]">
+                  Member since {new Date(user.createdAt).getFullYear()}
+                </span>
+              ) : null}
+            </div>
 
             <Separator className="my-7" />
 
@@ -93,10 +134,10 @@ export function Profile() {
               </div>
               <div>
                 <div className="font-heading text-xl font-bold text-primary">
-                  {paymentMethodsCount ?? "–"}
+                  {(isHost ? listingsCount : paymentMethodsCount) ?? "–"}
                 </div>
                 <div className="mt-0.5 text-xs text-muted-foreground">
-                  Saved cards
+                  {isHost ? "Listings" : "Saved cards"}
                 </div>
               </div>
             </div>
@@ -114,10 +155,14 @@ export function Profile() {
           </CardContent>
         </Card>
 
-        <Tabs defaultValue="details" className="min-w-0 flex-1">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => handleTabChange(value as ProfileTab)}
+          className="min-w-0 flex-1"
+        >
           <TabsList
             variant="line"
-            className="w-full justify-start gap-8 border-b border-border"
+            className="h-auto w-full flex-wrap justify-start gap-x-8 gap-y-1 border-b border-border"
           >
             <TabsTrigger value="details" className={ACCENT_TAB_CLASS}>
               Personal Details
@@ -128,6 +173,16 @@ export function Profile() {
             <TabsTrigger value="payment" className={ACCENT_TAB_CLASS}>
               Payment Methods
             </TabsTrigger>
+            {isHost ? (
+              <TabsTrigger value="listings" className={ACCENT_TAB_CLASS}>
+                My Listings
+              </TabsTrigger>
+            ) : null}
+            {isHost ? (
+              <TabsTrigger value="requests" className={ACCENT_TAB_CLASS}>
+                Booking Requests
+              </TabsTrigger>
+            ) : null}
           </TabsList>
 
           <Card className="mt-7">
@@ -141,6 +196,16 @@ export function Profile() {
               <TabsContent value="payment">
                 <PaymentMethods />
               </TabsContent>
+              {isHost ? (
+                <TabsContent value="listings">
+                  <MyListings onCountChange={setListingsCount} />
+                </TabsContent>
+              ) : null}
+              {isHost ? (
+                <TabsContent value="requests">
+                  <BookingRequests />
+                </TabsContent>
+              ) : null}
             </CardContent>
           </Card>
         </Tabs>

@@ -12,6 +12,8 @@ type AuthContextValue = {
   signUp: (input: authClient.SignUpInput) => Promise<void>
   signOut: () => Promise<void>
   updateProfile: (updates: authClient.UpdateProfileInput) => Promise<void>
+  /** Adds the host role to the signed-in account. */
+  becomeHost: () => Promise<void>
 }
 
 const AuthContext = React.createContext<AuthContextValue | undefined>(undefined)
@@ -68,9 +70,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [user]
   )
 
+  const becomeHost = React.useCallback(async () => {
+    if (!user) {
+      throw new Error("becomeHost called with no signed-in user.")
+    }
+    const nextUser = await authClient.becomeHost(user.id)
+    setUser(nextUser)
+  }, [user])
+
   const value = React.useMemo(
-    () => ({ user, isLoading, signIn, signUp, signOut, updateProfile }),
-    [user, isLoading, signIn, signUp, signOut, updateProfile]
+    () => ({
+      user,
+      isLoading,
+      signIn,
+      signUp,
+      signOut,
+      updateProfile,
+      becomeHost,
+    }),
+    [user, isLoading, signIn, signUp, signOut, updateProfile, becomeHost]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
