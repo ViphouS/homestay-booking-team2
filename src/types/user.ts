@@ -1,7 +1,10 @@
+export type UserRole = "user" | "admin"
+
 export type User = {
   id: string
   name: string
   email: string
+  role: UserRole
   avatarUrl?: string
   /** ISO timestamp. Optional — accounts created before this field existed don't have one. */
   createdAt?: string

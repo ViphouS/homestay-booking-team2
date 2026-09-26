@@ -129,6 +129,16 @@ export function NavBar() {
                 }
               />
               <DropdownMenuContent align="end">
+                {user.role === "admin" && (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate("/admin/bookings")}>
+                      Bookings
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/admin/properties")}>
+                      Properties
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuItem onClick={() => navigate("/profile")}>
                   Profile
                 </DropdownMenuItem>

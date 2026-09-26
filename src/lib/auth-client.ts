@@ -16,6 +16,15 @@ const USERS_KEY = "jumrok-mock-users"
 const SESSION_KEY = "jumrok-mock-session"
 const MOCK_DELAY_MS = 400
 
+const DEFAULT_ADMIN: StoredUser = {
+  id: "admin-1",
+  name: "Admin User",
+  email: "admin@jumrok.com",
+  password: "admin123",
+  role: "admin",
+  createdAt: new Date().toISOString(),
+}
+
 function delay() {
   return new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS))
 }
@@ -23,9 +32,19 @@ function delay() {
 function readUsers(): StoredUser[] {
   try {
     const raw = localStorage.getItem(USERS_KEY)
-    return raw ? (JSON.parse(raw) as StoredUser[]) : []
+    const users = raw ? (JSON.parse(raw) as StoredUser[]) : []
+
+    if (users.length === 0) {
+      writeUsers([DEFAULT_ADMIN])
+      return [DEFAULT_ADMIN]
+    }
+
+    return users.map((user) => ({
+      ...user,
+      role: user.role ?? "user",
+    }))
   } catch {
-    return []
+    return [DEFAULT_ADMIN]
   }
 }
 
@@ -38,6 +57,7 @@ function toPublicUser(user: StoredUser): User {
     id: user.id,
     name: user.name,
     email: user.email,
+    role: user.role ?? "user",
     avatarUrl: user.avatarUrl,
     createdAt: user.createdAt,
     phone: user.phone,
@@ -72,6 +92,7 @@ export async function signUp({
     name,
     email: normalizedEmail,
     password,
+    role: "user",
     createdAt: new Date().toISOString(),
   }
 
@@ -132,7 +153,11 @@ export async function updateProfile(
     throw new Error("User not found.")
   }
 
-  const updatedUser: StoredUser = { ...users[index], ...updates }
+  const updatedUser: StoredUser = {
+    ...users[index],
+    ...updates,
+    role: users[index].role ?? "user",
+  }
   const nextUsers = [...users]
   nextUsers[index] = updatedUser
   writeUsers(nextUsers)

@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom"
 
 import { Footer } from "./components/Footer"
 import { NavBar } from "./components/NavBar"
+import { RequireAdmin } from "@/components/RequireAdmin"
 import { RequireAuth } from "@/components/RequireAuth"
 import { Blog } from "@/pages/blog/Blog"
 import { BlogPost } from "@/pages/blog-post/BlogPost"
@@ -11,6 +12,8 @@ import { Login } from "@/pages/login/Login"
 import { Profile } from "@/pages/profile/Profile"
 import { Signup } from "@/pages/signup/Signup"
 import { StayDetails } from "@/pages/stay-details/StayDetails"
+import { AdminBookings } from "@/pages/admin/AdminBookings"
+import { AdminProperties } from "@/pages/admin/AdminProperties"
 import { ScrollToTop } from "./components/ScrollToTop"
 
 /**
@@ -39,6 +42,26 @@ export function App() {
               <RequireAuth>
                 <Profile />
               </RequireAuth>
+            }
+          />
+          <Route
+            path="/admin"
+            element={<Navigate to="/admin/bookings" replace />}
+          />
+          <Route
+            path="/admin/bookings"
+            element={
+              <RequireAdmin>
+                <AdminBookings />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/properties"
+            element={
+              <RequireAdmin>
+                <AdminProperties />
+              </RequireAdmin>
             }
           />
           {/* Unknown paths fall back to the landing page. */}
