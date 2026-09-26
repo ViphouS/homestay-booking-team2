@@ -111,6 +111,8 @@ create table if not exists public.profile_private (
 -- ---- Host applications -----------------------------------------------------
 -- How a user becomes a host: apply here, an admin approves with
 -- review_host_application(), which promotes the profile's role.
+-- A rejected user may apply again; once approved, never again (even if an
+-- admin later demotes them). Enforced by the trigger in section 4.
 create table if not exists public.host_applications (
   id           uuid primary key default gen_random_uuid(),
   user_id      uuid not null default auth.uid()
@@ -127,6 +129,10 @@ create table if not exists public.host_applications (
 create unique index if not exists host_applications_one_pending_per_user
   on public.host_applications (user_id)
   where status = 'pending';
+
+create unique index if not exists host_applications_one_approval_per_user
+  on public.host_applications (user_id)
+  where status = 'approved';
 
 -- ---- Listings --------------------------------------------------------------
 -- Flattened version of the `Listing` type in src/types/listing.ts (nested
@@ -563,6 +569,35 @@ drop trigger if exists blog_posts_before_write on public.blog_posts;
 create trigger blog_posts_before_write
   before insert or update on public.blog_posts
   for each row execute function public.blog_posts_before_write();
+
+-- ---- Host approval is a one-time thing -------------------------------------
+-- Blocks a new application (or approving a stale pending one) for a user
+-- who has already been approved once. Admins can still restore the role
+-- directly with admin_set_user_role().
+create or replace function public.host_applications_before_write()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.status in ('pending', 'approved') and exists (
+    select 1
+    from public.host_applications a
+    where a.user_id = new.user_id
+      and a.status = 'approved'
+      and a.id <> new.id
+  ) then
+    raise exception 'This account has already been approved as a host once and cannot apply again.';
+  end if;
+  return new;
+end
+$$;
+
+drop trigger if exists host_applications_before_write on public.host_applications;
+create trigger host_applications_before_write
+  before insert or update of status on public.host_applications
+  for each row execute function public.host_applications_before_write();
 
 -- ---- A successful payment confirms its booking -----------------------------
 create or replace function public.payments_after_write()

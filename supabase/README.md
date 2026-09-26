@@ -23,6 +23,8 @@ Everything lives in [`schema.sql`](schema.sql). It is idempotent, so the setup a
 | `host`  | Apply, then an admin approves                   | Everything a user can, plus create listings and blog posts               |
 | `admin` | Promoted by another admin (or the SQL above)    | Approve/reject listings, posts and host applications; manage users; see everything |
 
+**Host approval is one-time.** A rejected user can apply again, but once an application has been approved that account can never apply again, even if an admin later demotes it. Only an admin can restore the role, with `admin_set_user_role`.
+
 A **suspended** account (`profiles.suspended_at`) can still sign in and read its own data, but can't book, list, post or moderate.
 
 ## Flows and the calls behind them
