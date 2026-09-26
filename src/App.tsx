@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom"
 
 import { Footer } from "./components/Footer"
 import { NavBar } from "./components/NavBar"
+import { RequireAdmin } from "@/components/RequireAdmin"
 import { RequireAuth } from "@/components/RequireAuth"
 import { AdminDashboard } from "@/pages/admin/dashboard/AdminDashboard"
 import { PropertyManagement } from "@/pages/admin/property-management/PropertyManagement"
@@ -13,6 +14,7 @@ import { Login } from "@/pages/login/Login"
 import { Profile } from "@/pages/profile/Profile"
 import { Signup } from "@/pages/signup/Signup"
 import { StayDetails } from "@/pages/stay-details/StayDetails"
+import { AdminBookings } from "@/pages/admin/AdminBookings"
 import { ScrollToTop } from "./components/ScrollToTop"
 
 /**
@@ -35,7 +37,11 @@ export function App() {
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/host/login" element={<Login asHost />} />
+          {/* Single sign-in for every role; kept so old links still work. */}
+          <Route
+            path="/host/login"
+            element={<Navigate to="/login" replace />}
+          />
           <Route path="/host/signup" element={<Signup asHost />} />
           <Route
             path="/profile"
@@ -45,20 +51,30 @@ export function App() {
               </RequireAuth>
             }
           />
+          {/* Admin: one guard for every page, so no admin route can be added
+              without it. Admins sign in through the same /login as everyone. */}
           <Route
             path="/admin"
             element={
-              <RequireAuth>
+              <RequireAdmin>
                 <AdminDashboard />
-              </RequireAuth>
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/bookings"
+            element={
+              <RequireAdmin>
+                <AdminBookings />
+              </RequireAdmin>
             }
           />
           <Route
             path="/admin/properties"
             element={
-              <RequireAuth>
+              <RequireAdmin>
                 <PropertyManagement />
-              </RequireAuth>
+              </RequireAdmin>
             }
           />
           {/* Unknown paths fall back to the landing page. */}

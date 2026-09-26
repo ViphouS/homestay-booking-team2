@@ -12,6 +12,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getInitials } from "@/lib/initials";
 
+/** Admin pages, shown in the account menu (desktop) and the mobile menu. */
+const adminLinks = [
+  { name: "Dashboard", to: "/admin" },
+  { name: "Bookings", to: "/admin/bookings" },
+  { name: "Properties", to: "/admin/properties" },
+];
+
 /** `to` is a real route; `href` is a placeholder until that page exists. */
 const navLinks: { name: string; to?: string; href?: string }[] = [
   { name: "Home", to: "/" },
@@ -29,9 +36,9 @@ export function NavBar() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  // Hosts already have "My Listings" on their profile.
+  // Hosts already have "My Listings" on their profile, and admins can't host.
   const visibleLinks =
-    user?.role === "host"
+    user?.role === "host" || user?.role === "admin"
       ? navLinks.filter((link) => link.to !== "/host/signup")
       : navLinks;
 
@@ -136,6 +143,15 @@ export function NavBar() {
                 }
               />
               <DropdownMenuContent align="end">
+                {user.role === "admin" &&
+                  adminLinks.map((link) => (
+                    <DropdownMenuItem
+                      key={link.to}
+                      onClick={() => navigate(link.to)}
+                    >
+                      {link.name}
+                    </DropdownMenuItem>
+                  ))}
                 <DropdownMenuItem onClick={() => navigate("/profile")}>
                   Profile
                 </DropdownMenuItem>
@@ -208,6 +224,17 @@ export function NavBar() {
           <hr className="border-gray-200" />
           {user ? (
             <div className="flex flex-col gap-2">
+              {user.role === "admin" &&
+                adminLinks.map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setIsMobileOpen(false)}
+                    className="w-full rounded-full bg-[#EFEFEA] py-3 text-center text-base font-semibold text-gray-800 transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                ))}
               <Link
                 to="/profile"
                 onClick={() => setIsMobileOpen(false)}

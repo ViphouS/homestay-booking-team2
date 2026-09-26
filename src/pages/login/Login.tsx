@@ -14,22 +14,19 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { landingPathFor } from "@/lib/landing-path"
 
 const LINK_CLASS = "text-primary underline-offset-4 hover:underline"
 
-type LoginProps = {
-  /** Host log-in (`/host/login`): host copy, host-only accounts, lands on My Listings. */
-  asHost?: boolean
-}
-
 /**
- * Sign-in form, shared by the guest (`/login`) and host (`/host/login`) routes.
+ * The one sign-in form for every role — users, hosts and admins alike.
  *
  * Plain controlled state, no form library — matches the rest of the repo
- * (see `hero/location-input.tsx`). On success, redirects to `/profile`
- * (hosts land on its "My Listings" tab).
+ * (see `hero/location-input.tsx`). On success, sends each role to its home
+ * via `landingPathFor`: admins to `/admin`, hosts to their listings, users
+ * to `/profile`.
  */
-export function Login({ asHost = false }: LoginProps) {
+export function Login() {
   const { signIn } = useAuth()
   const navigate = useNavigate()
 
@@ -44,8 +41,8 @@ export function Login({ asHost = false }: LoginProps) {
     setIsSubmitting(true)
 
     try {
-      await signIn({ email, password, asHost })
-      navigate(asHost ? "/profile?tab=listings" : "/profile")
+      const signedIn = await signIn({ email, password })
+      navigate(landingPathFor(signedIn.role))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.")
       setIsSubmitting(false)
@@ -56,14 +53,8 @@ export function Login({ asHost = false }: LoginProps) {
     <div className="mx-auto flex w-full max-w-md flex-col px-4 py-10 sm:px-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">
-            {asHost ? "Host log in" : "Log in"}
-          </CardTitle>
-          <CardDescription>
-            {asHost
-              ? "Manage your homestay listings."
-              : "Welcome back to JumRok."}
-          </CardDescription>
+          <CardTitle className="text-2xl">Log in</CardTitle>
+          <CardDescription>Welcome back to JumRok.</CardDescription>
         </CardHeader>
         <form
           onSubmit={handleSubmit}
@@ -108,37 +99,18 @@ export function Login({ asHost = false }: LoginProps) {
             <Button type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting ? "Logging in…" : "Log in"}
             </Button>
-            {asHost ? (
-              <>
-                <p className="text-center text-sm text-muted-foreground">
-                  New to hosting?{" "}
-                  <Link to="/host/signup" className={LINK_CLASS}>
-                    Sign up as host
-                  </Link>
-                </p>
-                <p className="text-center text-xs text-muted-foreground">
-                  Not a host?{" "}
-                  <Link to="/login" className={LINK_CLASS}>
-                    Log in as guest
-                  </Link>
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-center text-sm text-muted-foreground">
-                  Don't have an account?{" "}
-                  <Link to="/signup" className={LINK_CLASS}>
-                    Sign up
-                  </Link>
-                </p>
-                <p className="text-center text-xs text-muted-foreground">
-                  Are you a host?{" "}
-                  <Link to="/host/login" className={LINK_CLASS}>
-                    Log in as host
-                  </Link>
-                </p>
-              </>
-            )}
+            <p className="text-center text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Link to="/signup" className={LINK_CLASS}>
+                Sign up
+              </Link>
+            </p>
+            <p className="text-center text-xs text-muted-foreground">
+              Want to list your home?{" "}
+              <Link to="/host/signup" className={LINK_CLASS}>
+                Become a host
+              </Link>
+            </p>
           </CardFooter>
         </form>
       </Card>

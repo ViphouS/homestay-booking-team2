@@ -8,7 +8,8 @@ type AuthContextValue = {
   user: User | null
   /** True until the initial session check (from `localStorage`) resolves. */
   isLoading: boolean
-  signIn: (input: authClient.SignInInput) => Promise<void>
+  /** Resolves with the signed-in user so the caller can route by role. */
+  signIn: (input: authClient.SignInInput) => Promise<User>
   signUp: (input: authClient.SignUpInput) => Promise<void>
   signOut: () => Promise<void>
   updateProfile: (updates: authClient.UpdateProfileInput) => Promise<void>
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = React.useCallback(async (input: authClient.SignInInput) => {
     const nextUser = await authClient.signIn(input)
     setUser(nextUser)
+    return nextUser
   }, [])
 
   const signUp = React.useCallback(async (input: authClient.SignUpInput) => {

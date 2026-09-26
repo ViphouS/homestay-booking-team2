@@ -14,10 +14,11 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { landingPathFor } from "@/lib/landing-path"
 
 const MIN_PASSWORD_LENGTH = 6
 const LINK_CLASS = "text-primary underline-offset-4 hover:underline"
-const HOST_LANDING = "/profile?tab=listings"
+const HOST_LANDING = landingPathFor("host")
 
 type SignupProps = {
   /** Host sign-up (`/host/signup`, the navbar's "Become a Host"). */
@@ -62,7 +63,7 @@ export function Signup({ asHost = false }: SignupProps) {
     setIsSubmitting(true)
     try {
       await signUp({ name, email, password, asHost })
-      navigate(asHost ? HOST_LANDING : "/profile")
+      navigate(landingPathFor(asHost ? "host" : "user"))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.")
       setIsSubmitting(false)
@@ -72,7 +73,10 @@ export function Signup({ asHost = false }: SignupProps) {
   if (asHost) {
     // Wait for the session check so a signed-in user never sees the form flash.
     if (isLoading) return null
-    if (user?.role === "host") return <Navigate to={HOST_LANDING} replace />
+    // Hosts are already there; admins can't be hosts (see `becomeHost`).
+    if (user?.role === "host" || user?.role === "admin") {
+      return <Navigate to={landingPathFor(user.role)} replace />
+    }
     if (user) return <BecomeHostCard />
   }
 
@@ -162,11 +166,8 @@ export function Signup({ asHost = false }: SignupProps) {
             </Button>
             <p className="text-center text-sm text-muted-foreground">
               {asHost ? "Already a host?" : "Already have an account?"}{" "}
-              <Link
-                to={asHost ? "/host/login" : "/login"}
-                className={LINK_CLASS}
-              >
-                {asHost ? "Log in as host" : "Log in"}
+              <Link to="/login" className={LINK_CLASS}>
+                Log in
               </Link>
             </p>
           </CardFooter>
