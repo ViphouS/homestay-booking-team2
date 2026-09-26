@@ -1187,6 +1187,33 @@ begin
 end
 $$;
 
+-- Host: how to reach the guests of live bookings on their own listings.
+-- Hosts can't read profile_private (it also holds ID number, date of birth
+-- and billing address), so this hands over only name, email and phone, and
+-- only while the booking is pending or confirmed.
+create or replace function public.host_booking_contacts()
+returns table (
+  booking_id uuid,
+  guest_name text,
+  email text,
+  phone text
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select b.id, p.full_name, pp.email, pp.phone
+  from public.bookings b
+  join public.listings l on l.id = b.listing_id
+  join public.profiles p on p.id = b.guest_id
+  join public.profile_private pp on pp.id = b.guest_id
+  where l.host_id = (select auth.uid())
+    and public.current_user_role() in ('host', 'admin')
+    and b.status in ('pending', 'confirmed')
+  order by b.check_in
+$$;
+
 
 -- ============================================================================
 -- 6. Row Level Security and grants
@@ -1489,7 +1516,8 @@ begin
     'public.admin_dashboard_stats()',
     'public.create_booking(text, date, date, integer, integer, integer)',
     'public.cancel_booking(uuid, text)',
-    'public.complete_past_bookings()'
+    'public.complete_past_bookings()',
+    'public.host_booking_contacts()'
   ] loop
     execute format('revoke execute on function %s from public, anon', f);
     execute format('grant execute on function %s to authenticated', f);

@@ -501,6 +501,15 @@ export type Database = {
         Returns: BookingRow
       }
       complete_past_bookings: { Args: never; Returns: number }
+      host_booking_contacts: {
+        Args: never
+        Returns: {
+          booking_id: string
+          guest_name: string
+          email: string
+          phone: string | null
+        }[]
+      }
     }
     Enums: {
       user_role: UserRole

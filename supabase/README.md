@@ -64,6 +64,7 @@ any state ──archive──▶ archived ──submit──▶ pending
 | Delete a draft/rejected | `from("listings").delete().eq("id", id)`                                      |
 | My listings             | `from("listings").select("*").eq("host_id", userId)`                          |
 | Bookings on my listings | `from("bookings").select("*, listing:listings(name)")`                        |
+| Contact my guests       | `rpc("host_booking_contacts")`: name, email and phone for pending/confirmed bookings only; never ID, DOB or billing address |
 | Upload photos           | `storage.from("listing-images").upload(`${userId}/${file.name}`, file)`      |
 
 Blog posts work the same way with `blog_posts`, `submit_blog_post`, `archive_blog_post` and the `blog-images` bucket.
